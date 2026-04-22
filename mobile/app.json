@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Produce Ordering App",
+    "slug": "produce-ordering-app",
+    "scheme": "produce-ordering-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
