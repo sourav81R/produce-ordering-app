@@ -6,7 +6,7 @@ import { theme } from '../constants/theme';
 
 export default function ProductListScreen() {
   const [products, setProducts] = useState([]);
-  const [category, setCategory] = useState('Veg');
+  const [category, setCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -26,14 +26,17 @@ export default function ProductListScreen() {
   }, []);
 
   const filteredProducts = useMemo(
-    () => products.filter((product) => product.category === category),
+    () =>
+      category === 'All'
+        ? products
+        : products.filter((product) => product.category === category),
     [products, category]
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Product List</Text>
-      <Text style={styles.subheading}>Browse produce and switch categories using the tabs.</Text>
+      <Text style={styles.heading}>Fresh Produce, Delivered on Your Schedule</Text>
+      <Text style={styles.subheading}>Browse the catalogue by category and place orders when ready.</Text>
 
       <CategoryTabs activeCategory={category} onChange={setCategory} />
 
@@ -51,9 +54,26 @@ export default function ProductListScreen() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Text style={styles.productName}>{item.name}</Text>
-              <Text style={styles.productMeta}>
-                {item.category} | ${item.price}/{item.unit}
-              </Text>
+              <View style={styles.badgeRow}>
+                <View
+                  style={[
+                    styles.categoryBadge,
+                    item.category === 'Fruit' ? styles.fruitBadge : styles.vegetableBadge,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.categoryBadgeText,
+                      item.category === 'Fruit'
+                        ? styles.fruitBadgeText
+                        : styles.vegetableBadgeText,
+                    ]}
+                  >
+                    {item.category}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.productMeta}>Rs. {item.price}/{item.unit}</Text>
             </View>
           )}
           ListEmptyComponent={
@@ -94,11 +114,38 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.secondary,
   },
   productName: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text,
+  },
+  badgeRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+  },
+  categoryBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  categoryBadgeText: {
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  vegetableBadge: {
+    backgroundColor: theme.colors.deliveredSoft,
+  },
+  vegetableBadgeText: {
+    color: theme.colors.primary,
+  },
+  fruitBadge: {
+    backgroundColor: theme.colors.fruitSoft,
+  },
+  fruitBadgeText: {
+    color: theme.colors.fruitText,
   },
   productMeta: {
     marginTop: 8,

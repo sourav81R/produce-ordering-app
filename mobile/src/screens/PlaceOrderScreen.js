@@ -87,7 +87,7 @@ export default function PlaceOrderScreen({ onOrderPlaced }) {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Place Order</Text>
       <Text style={styles.subheading}>
-        Choose a product, set the quantity, and select a delivery date.
+        Choose a product, set the quantity, and schedule delivery for your store.
       </Text>
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -105,14 +105,14 @@ export default function PlaceOrderScreen({ onOrderPlaced }) {
                 return (
                   <TouchableOpacity
                     key={product._id}
-                    style={[styles.productOption, isActive && styles.activeProductOption]}
+                      style={[styles.productOption, isActive && styles.activeProductOption]}
                     onPress={() => setSelectedProduct(product._id)}
                   >
                     <Text style={[styles.productOptionName, isActive && styles.activeProductText]}>
                       {product.name}
                     </Text>
                     <Text style={[styles.productOptionMeta, isActive && styles.activeProductText]}>
-                      {product.category} | ${product.price}/{product.unit}
+                      {product.category} | Rs. {product.price}/{product.unit}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -205,8 +205,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
   activeProductOption: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.secondary,
+    borderColor: theme.colors.secondary,
   },
   productOptionName: {
     fontSize: 16,

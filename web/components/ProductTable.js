@@ -8,28 +8,22 @@ export default function ProductTable({ products }) {
   }
 
   return (
-    <div className="card table-card">
-      <table className="product-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Unit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product._id}>
-              <td>{product.name}</td>
-              <td>{product.category}</td>
-              <td>${product.price.toFixed(2)}</td>
-              <td>{product.unit}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="product-grid">
+      {products.map((product) => (
+        <article className="product-card" key={product._id}>
+          <div className="product-card-top">
+            <span className={`category-badge ${product.category.toLowerCase()}`}>
+              {product.category}
+            </span>
+            <span className="product-unit">{product.unit}</span>
+          </div>
+          <h3>{product.name}</h3>
+          <p className="product-price">Rs. {product.price.toFixed(2)}</p>
+          <p className="muted-text">
+            Fresh produce ready for retailer ordering through the GoVigi catalogue.
+          </p>
+        </article>
+      ))}
     </div>
   );
 }
-

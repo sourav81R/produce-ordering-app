@@ -32,7 +32,7 @@ export const useRequireAuth = () => {
     const token = getStoredToken();
 
     if (!token) {
-      router.replace('/auth/login');
+      router.replace('/login');
       return;
     }
 
@@ -50,7 +50,7 @@ export const useRedirectIfAuthenticated = () => {
     const token = getStoredToken();
     if (token) {
       setApiToken(token);
-      router.replace('/products');
+      router.replace('/');
     }
   }, [router]);
 };

@@ -1,12 +1,12 @@
 export async function getServerSideProps() {
   return {
     redirect: {
-      destination: '/',
+      destination: '/cart',
       permanent: false,
     },
   };
 }
 
-export default function ProductsPage() {
+export default function PlaceOrderPage() {
   return null;
 }

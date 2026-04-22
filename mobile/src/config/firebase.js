@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
+  browserLocalPersistence,
   GoogleAuthProvider,
   getAuth,
   getReactNativePersistence,
   initializeAuth,
+  setPersistence,
   signInWithCredential,
+  signInWithPopup,
   signOut,
 } from 'firebase/auth';
 
@@ -51,6 +54,15 @@ export const mobileFirebaseAuth = firebaseAuth;
 export const signInToFirebaseWithGoogleIdToken = async (googleIdToken) => {
   const credential = GoogleAuthProvider.credential(googleIdToken);
   return signInWithCredential(mobileFirebaseAuth, credential);
+};
+
+export const signInToFirebaseWithGooglePopup = async () => {
+  const provider = new GoogleAuthProvider();
+  provider.addScope('email');
+  provider.addScope('profile');
+
+  await setPersistence(mobileFirebaseAuth, browserLocalPersistence);
+  return signInWithPopup(mobileFirebaseAuth, provider);
 };
 
 export const signOutFromFirebase = async () => {

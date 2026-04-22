@@ -57,6 +57,9 @@ export function AuthProvider({ children }) {
   const register = async (payload) => {
     try {
       const response = await apiClient.post('/auth/register', payload);
+      if (response.data?.token) {
+        await persistJwt(response.data.token);
+      }
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Unable to register.'));

@@ -4,8 +4,8 @@ import Layout from '../../components/Layout';
 import PageHeader from '../../components/PageHeader';
 import StatusBadge from '../../components/StatusBadge';
 import { apiClient } from '../../lib/api';
-import { formatDisplayDate } from '../../lib/date';
 import { useRequireAuth } from '../../lib/auth';
+import { formatDisplayDate } from '../../lib/date';
 
 export default function MyOrdersPage() {
   const { checkingAuth } = useRequireAuth();
@@ -37,50 +37,59 @@ export default function MyOrdersPage() {
   return (
     <Layout>
       <Head>
-        <title>My Orders | Produce Ordering App</title>
+        <title>My Orders | Foodooza</title>
       </Head>
 
       <div className="page-stack">
         <PageHeader
           title="My Orders"
-          description="Review the orders placed by the currently signed-in account."
+          description="Track your Foodooza orders, monitor status changes, and review delivery details."
         />
 
-        <div className="card">
+        <div className="card order-list-shell">
           {error ? <p className="alert error">{error}</p> : null}
 
           {loading ? (
             <p className="muted-text">Loading orders...</p>
           ) : orders.length === 0 ? (
-            <p className="muted-text">No orders yet. Place your first produce order.</p>
+            <p className="muted-text">No orders yet. Explore restaurants and place your first order.</p>
           ) : (
-            <div className="orders-grid">
+            <div className="orders-grid enhanced-orders-grid">
               {orders.map((order) => (
                 <article className="order-card" key={order._id}>
                   <div className="order-card-top">
                     <div>
-                      <h3>{order.product?.name}</h3>
-                      <p className="muted-text">
-                        {order.product?.category} | ${order.product?.price}/{order.product?.unit}
-                      </p>
+                      <h3>{order.shop?.name}</h3>
+                      <p className="muted-text">{order.shop?.city}</p>
                     </div>
                     <StatusBadge status={order.status} />
                   </div>
 
                   <dl className="order-details">
                     <div>
-                      <dt>Quantity</dt>
-                      <dd>{order.quantity}</dd>
+                      <dt>Items</dt>
+                      <dd>{order.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}</dd>
                     </div>
                     <div>
-                      <dt>Delivery Date</dt>
-                      <dd>{formatDisplayDate(order.deliveryDate)}</dd>
+                      <dt>Total</dt>
+                      <dd>Rs. {order.total}</dd>
+                    </div>
+                    <div>
+                      <dt>Payment</dt>
+                      <dd>{order.paymentMethod.toUpperCase()}</dd>
                     </div>
                     <div>
                       <dt>Ordered On</dt>
                       <dd>{formatDisplayDate(order.createdAt)}</dd>
                     </div>
                   </dl>
+
+                  <div className="order-address">
+                    <strong>{order.deliveryAddress?.label || 'Address'}</strong>
+                    <span>
+                      {order.deliveryAddress?.line1}, {order.deliveryAddress?.city}
+                    </span>
+                  </div>
                 </article>
               ))}
             </div>

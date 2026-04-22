@@ -10,11 +10,13 @@ export const getServerApiBaseUrl = () =>
 
 export const apiClient = axios.create({
   baseURL: getBrowserApiBaseUrl(),
+  withCredentials: true,
 });
 
 export const buildServerApiClient = (baseURL) =>
   axios.create({
     baseURL,
+    withCredentials: true,
   });
 
 export const setApiToken = (token) => {
@@ -25,4 +27,3 @@ export const setApiToken = (token) => {
 
   delete apiClient.defaults.headers.common.Authorization;
 };
-

@@ -6,7 +6,7 @@ import InputField from '../../components/InputField';
 import Layout from '../../components/Layout';
 import PageHeader from '../../components/PageHeader';
 import { apiClient } from '../../lib/api';
-import { useRedirectIfAuthenticated } from '../../lib/auth';
+import { applyStoredToken, useRedirectIfAuthenticated } from '../../lib/auth';
 import { getRequestErrorMessage } from '../../lib/errors';
 
 export default function RegisterPage() {
@@ -60,12 +60,13 @@ export default function RegisterPage() {
     }
 
     try {
-      await apiClient.post('/auth/register', {
+      const response = await apiClient.post('/auth/register', {
         name: trimmedName,
         email: trimmedEmail,
         password: trimmedPassword,
       });
-      router.push('/auth/login?registered=1');
+      applyStoredToken(response.data.token);
+      router.push('/');
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to create your account.'));
     } finally {
@@ -76,13 +77,13 @@ export default function RegisterPage() {
   return (
     <Layout>
       <Head>
-        <title>Register | Produce Ordering App</title>
+        <title>Create Account | Foodooza</title>
       </Head>
 
       <div className="auth-card">
         <PageHeader
           title="Register"
-          description="Create an account to place produce orders from the web app."
+          description="Create your Foodooza customer account and start ordering from curated restaurants."
         />
 
         {error ? (
@@ -125,7 +126,7 @@ export default function RegisterPage() {
         </form>
 
         <p className="helper-text">
-          Already registered? <Link href="/auth/login">Sign in</Link>
+          Already registered? <Link href="/login">Sign in</Link>
         </p>
       </div>
     </Layout>

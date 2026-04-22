@@ -7,6 +7,8 @@ export default function PrimaryButton({
   loading = false,
   disabled = false,
   variant = 'primary',
+  style,
+  labelStyle,
 }) {
   const isSecondary = variant === 'secondary';
   const isDisabled = loading || disabled;
@@ -17,6 +19,7 @@ export default function PrimaryButton({
         styles.button,
         isSecondary ? styles.secondaryButton : styles.primaryButton,
         isDisabled && styles.disabledButton,
+        style,
       ]}
       onPress={onPress}
       disabled={isDisabled}
@@ -24,7 +27,13 @@ export default function PrimaryButton({
       {loading ? (
         <ActivityIndicator color={isSecondary ? theme.colors.text : '#ffffff'} />
       ) : (
-        <Text style={[styles.label, isSecondary ? styles.secondaryLabel : styles.primaryLabel]}>
+        <Text
+          style={[
+            styles.label,
+            isSecondary ? styles.secondaryLabel : styles.primaryLabel,
+            labelStyle,
+          ]}
+        >
           {title}
         </Text>
       )}
@@ -35,16 +44,18 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     minHeight: 48,
-    borderRadius: 12,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 18,
   },
   primaryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.secondary,
   },
   secondaryButton: {
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   disabledButton: {
     opacity: 0.7,

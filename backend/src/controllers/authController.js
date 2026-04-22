@@ -8,17 +8,34 @@ const sanitizeUser = (user) => ({
   name: user.name,
   email: user.email,
   provider: user.provider,
+  role: user.role,
+  suspended: user.suspended,
   createdAt: user.createdAt,
 });
 
-const buildAuthResponse = (user, message) => ({
-  message,
-  token: generateToken(user._id.toString()),
-  user: sanitizeUser(user),
-});
+const setAuthCookie = (res, token) => {
+  res.cookie('token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+  });
+};
+
+const buildAuthResponse = (res, user, message) => {
+  const token = generateToken(user);
+  setAuthCookie(res, token);
+
+  return {
+    message,
+    token,
+    user: sanitizeUser(user),
+  };
+};
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   if (!name?.trim() || !email?.trim() || !password?.trim()) {
     return res.status(400).json({ message: 'Name, email, and password are required.' });
@@ -39,12 +56,10 @@ export const registerUser = asyncHandler(async (req, res) => {
     name: name.trim(),
     email: normalizedEmail,
     password: password.trim(),
+    role: ['restaurant', 'delivery'].includes(role) ? role : 'user',
   });
 
-  return res.status(201).json({
-    message: 'User registered successfully.',
-    user: sanitizeUser(user),
-  });
+  return res.status(201).json(buildAuthResponse(res, user, 'User registered successfully.'));
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
@@ -61,6 +76,10 @@ export const loginUser = asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Invalid email or password.' });
   }
 
+  if (user.suspended) {
+    return res.status(403).json({ message: 'Your account has been suspended.' });
+  }
+
   if (!user.password) {
     return res.status(401).json({
       message: 'This account does not have a password. Please continue with Google.',
@@ -71,11 +90,11 @@ export const loginUser = asyncHandler(async (req, res) => {
     return res.status(401).json({ message: 'Invalid email or password.' });
   }
 
-  return res.status(200).json(buildAuthResponse(user, 'Login successful.'));
+  return res.status(200).json(buildAuthResponse(res, user, 'Login successful.'));
 });
 
 export const firebaseLoginUser = asyncHandler(async (req, res) => {
-  const { idToken } = req.body;
+  const { idToken, role } = req.body;
 
   if (!idToken?.trim()) {
     return res.status(400).json({ message: 'Firebase ID token is required.' });
@@ -114,6 +133,10 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: normalizedEmail });
 
   if (user) {
+    if (user.suspended) {
+      return res.status(403).json({ message: 'Your account has been suspended.' });
+    }
+
     if (user.firebaseUid && user.firebaseUid !== uid) {
       return res.status(409).json({
         message: 'This email is already linked to a different Google account.',
@@ -134,6 +157,10 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
       updates.provider = 'google';
     }
 
+    if (!user.role || user.role === 'user') {
+      updates.role = ['restaurant', 'delivery'].includes(role) ? role : 'user';
+    }
+
     if (Object.keys(updates).length) {
       user = await User.findByIdAndUpdate(user._id, updates, {
         new: true,
@@ -141,7 +168,7 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
       });
     }
 
-    return res.status(200).json(buildAuthResponse(user, 'Google login successful.'));
+    return res.status(200).json(buildAuthResponse(res, user, 'Google login successful.'));
   }
 
   user = await User.create({
@@ -149,7 +176,8 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
     email: normalizedEmail,
     firebaseUid: uid,
     provider: 'google',
+    role: ['restaurant', 'delivery'].includes(role) ? role : 'user',
   });
 
-  return res.status(200).json(buildAuthResponse(user, 'Google login successful.'));
+  return res.status(200).json(buildAuthResponse(res, user, 'Google login successful.'));
 });

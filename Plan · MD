@@ -1,0 +1,132 @@
+# Development Plan
+## Produce Ordering App — GoVigi Intern Assessment
+
+**Total Timeline:** 3–4 Days  
+**Stack:** Node.js · Express · MongoDB · Next.js · React Native (Expo)
+
+---
+
+## Day-by-Day Plan
+
+### Day 1 — Backend Foundation
+
+**Goal:** Fully working API with auth, products, and orders. Testable via Postman/curl.
+
+Morning (3–4 hrs):
+- Set up monorepo structure (`/backend`, `/web`, `/mobile`)
+- Initialize Express app with `cors`, `dotenv`, `mongoose`
+- Connect to MongoDB Atlas
+- Create `User`, `Product`, `Order` Mongoose models
+
+Afternoon (3–4 hrs):
+- Implement `POST /api/auth/register` and `POST /api/auth/login` with bcrypt + JWT
+- Implement Firebase Admin SDK integration and `POST /api/auth/firebase-login`
+- Write `verifyJWT` middleware
+- Implement `GET /api/products` (public)
+- Implement `POST /api/orders` and `GET /api/orders` (protected)
+- Write seed script with 5+ products (3 vegetables, 2+ fruits)
+- Create `backend/.env.example`
+
+End of Day 1 Checkpoint:
+- [ ] All 5 API endpoints return correct status codes
+- [ ] JWT auth works on protected routes
+- [ ] Seed script populates DB successfully
+- [ ] No secrets in code
+
+---
+
+### Day 2 — Next.js Web Portal
+
+**Goal:** All 5 web pages functional, JWT stored, SSR working for products.
+
+Morning (3–4 hrs):
+- Initialize Next.js project in `/web`
+- Set up Axios instance with JWT interceptor (`lib/api.js`)
+- Build Login page and Register page (forms → API → store JWT in localStorage)
+- Initialize Firebase Web SDK, add Google Sign-In button
+- Build shared `Navbar` component
+
+Afternoon (3–4 hrs):
+- Build Products page with SSR (`getServerSideProps` → `GET /api/products`)
+- Build `ProductCard` component
+- Build Place Order page (product selector, quantity input, date picker → `POST /api/orders`)
+- Build My Orders page (`GET /api/orders` → list with `StatusBadge`)
+- Apply GoVigi-inspired UI: green (#2E7D32 / #4CAF50) + white + warm greys
+- Create `web/.env.example`
+
+End of Day 2 Checkpoint:
+- [ ] Register → Login → Products → Place Order → My Orders flow works end-to-end
+- [ ] SSR confirmed (view source shows product HTML)
+- [ ] Google Sign-In works
+- [ ] JWT persists across page refreshes
+
+---
+
+### Day 3 — React Native Mobile App
+
+**Goal:** All 5 screens functional, category filtering, orders viewable.
+
+Morning (3–4 hrs):
+- Initialize Expo project in `/mobile`
+- Set up React Navigation (Stack + Bottom Tab)
+- Build Auth screens: Login, Register (AsyncStorage for JWT)
+- Set up `AuthContext` for global auth state
+- Set up Axios instance with token interceptor
+
+Afternoon (3–4 hrs):
+- Build Product List screen with category filter tabs (Veg / Fruit)
+- Build Place Order screen (product picker, quantity, date picker)
+- Build My Orders screen with status badges
+- Apply consistent GoVigi-style theming
+- Test on Android emulator and/or Expo Go
+- Create `mobile/.env.example`
+
+End of Day 3 Checkpoint:
+- [ ] All screens navigate correctly
+- [ ] Auth persists with AsyncStorage
+- [ ] Orders placed on mobile appear in web My Orders (and vice versa)
+- [ ] Google Sign-In works on mobile
+
+---
+
+### Day 4 — Polish, Testing & Submission
+
+**Goal:** Project is reviewable, runnable, and submission-ready.
+
+Morning (2–3 hrs):
+- Write comprehensive `README.md` covering:
+  - Prerequisites (Node, MongoDB, Firebase)
+  - Step-by-step setup for each part
+  - Environment variable explanations
+  - How to seed the database
+  - How to run all three apps
+- Final pass on error handling (missing fields, invalid tokens, non-existent products)
+- Remove all `console.log` debug statements
+- Verify `.env.example` files are accurate
+
+Afternoon (1–2 hrs):
+- Final end-to-end smoke test: fresh clone → setup → register → order → check status
+- Review code quality: consistent naming, no duplicated logic, no dead code
+- Push clean commit history to GitHub
+- Submit link to hr@govigi.com
+
+---
+
+## Risk Register
+
+| Risk | Likelihood | Mitigation |
+|------|-----------|------------|
+| Firebase Google Sign-In config issues | Medium | Complete email/password auth first; Google is a bonus |
+| MongoDB Atlas network access | Low | Whitelist `0.0.0.0/0` during development |
+| Expo Go incompatibility | Low | Use Expo SDK 50+ which supports most plugins |
+| AsyncStorage deprecation | Low | Use `@react-native-async-storage/async-storage` explicitly |
+
+---
+
+## Definition of Done
+
+A feature is "done" when:
+1. It works correctly in the happy path.
+2. Basic error cases return meaningful HTTP status codes and messages.
+3. No secrets are hardcoded.
+4. The README explains how to trigger it.

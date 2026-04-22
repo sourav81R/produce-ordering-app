@@ -1,0 +1,104 @@
+# Product Requirements Document (PRD)
+## Produce Ordering App — GoVigi Intern Assessment
+
+**Version:** 1.0  
+**Date:** April 22, 2026  
+**Author:** Intern Candidate  
+**Stakeholder:** GoVigi / Triizi HR Team
+
+---
+
+## 1. Overview
+
+A mini version of GoVigi — a B2B produce ordering platform that lets retailers browse vegetables and fruits, place bulk orders with a delivery date, and track order status. The product spans three surfaces: a REST API backend, a Next.js web portal, and a React Native mobile app.
+
+---
+
+## 2. Goals & Success Criteria
+
+| Goal | Success Metric |
+|------|---------------|
+| Retailers can self-register and log in | Auth flow works end-to-end with JWT |
+| Retailers can browse the product catalogue | All seeded products visible without login |
+| Retailers can place an order | Order saved in DB with `Pending` status |
+| Retailers can track their orders | Order list shows correct status badges |
+| Evaluators can run the project from scratch | README alone is sufficient — zero clarifying questions needed |
+
+---
+
+## 3. Users & Personas
+
+**Primary User — Retailer**  
+A small shop owner (kirana/vegetable store) who wants to restock inventory by placing bulk orders online. They need speed, clarity, and mobile access.
+
+---
+
+## 4. Functional Requirements
+
+### 4.1 Authentication
+
+- Retailers can register with name, email, and password (hashed with bcrypt).
+- Retailers can log in and receive a JWT.
+- Protected routes require a valid Bearer token.
+- Firebase Google Sign-In is supported on web and mobile.
+- The backend verifies Firebase ID tokens and issues an app-level JWT.
+
+### 4.2 Product Catalogue
+
+- Any visitor (authenticated or not) can browse all products.
+- Each product has: name, category (Vegetable / Fruit), price, and unit (kg / piece).
+- The web portal fetches the catalogue using SSR (Next.js `getServerSideProps`).
+- The mobile app displays products grouped by category.
+
+### 4.3 Order Placement
+
+- Authenticated retailers can place an order by selecting a product, entering a quantity, and choosing a delivery date.
+- Orders are tied to the logged-in retailer.
+- Initial status is `Pending`.
+
+### 4.4 Order History
+
+- Authenticated retailers can view their own past orders.
+- Each order displays: product name, quantity, delivery date, and current status.
+- Status values: `Pending` → `Confirmed` → `Delivered`.
+
+---
+
+## 5. Non-Functional Requirements
+
+- **Security:** Passwords hashed with bcrypt. JWT with appropriate expiry. No secrets committed to Git.
+- **Code Quality:** Clean, readable, modular code. No unnecessary complexity.
+- **API Design:** RESTful routes, correct HTTP status codes, meaningful error messages.
+- **Portability:** `.env.example` files allow any evaluator to configure and run the project.
+- **Seed Data:** At least 5 products (mix of vegetables and fruits) seeded via script.
+
+---
+
+## 6. Out of Scope
+
+- Payment processing
+- Admin dashboard
+- Real-time order tracking / WebSockets
+- Product images
+- Search / filter beyond category grouping
+- Push notifications
+
+---
+
+## 7. Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Node.js, Express, MongoDB, Mongoose, JWT, bcrypt |
+| Web | Next.js, React, Axios, Firebase Web SDK |
+| Mobile | Expo, React Native, Axios, Firebase Web SDK |
+| Auth (Social) | Firebase Authentication (Google) |
+| Storage | MongoDB Atlas |
+
+---
+
+## 8. Constraints
+
+- 3–4 day delivery timeline.
+- Single GitHub repository with `/backend`, `/web`, `/mobile` folders.
+- Evaluators must be able to run the project using only the README.

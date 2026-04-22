@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { apiClient, getApiErrorMessage } from '../api/client';
 import StatusBadge from '../components/StatusBadge';
 import { theme } from '../constants/theme';
 import { formatDisplayDate } from '../utils/date';
 
-export default function OrdersScreen({ refreshKey }) {
+export default function OrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
     const loadOrders = async () => {
       setLoading(true);
       setError('');
@@ -26,12 +28,13 @@ export default function OrdersScreen({ refreshKey }) {
     };
 
     loadOrders();
-  }, [refreshKey]);
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>My Orders</Text>
-      <Text style={styles.subheading}>Track your personal produce orders and status updates.</Text>
+      <Text style={styles.subheading}>Track retailer orders and delivery progress in one place.</Text>
 
       {loading ? (
         <View style={styles.centerState}>
@@ -50,7 +53,7 @@ export default function OrdersScreen({ refreshKey }) {
                 <View>
                   <Text style={styles.productName}>{item.product?.name}</Text>
                   <Text style={styles.productMeta}>
-                    {item.product?.category} | ${item.product?.price}/{item.product?.unit}
+                    {item.product?.category} | Rs. {item.product?.price}/{item.product?.unit}
                   </Text>
                 </View>
                 <StatusBadge status={item.status} />
@@ -63,7 +66,7 @@ export default function OrdersScreen({ refreshKey }) {
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No orders yet. Place one from the Place Order tab.</Text>
+            <Text style={styles.emptyText}>No orders yet. Browse our catalogue to get started.</Text>
           }
         />
       )}
@@ -100,6 +103,8 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.accent,
   },
   cardHeader: {
     flexDirection: 'row',

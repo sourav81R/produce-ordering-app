@@ -1,0 +1,244 @@
+# System Architecture
+## Produce Ordering App — GoVigi Intern Assessment
+
+---
+
+## 1. High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENTS                              │
+│                                                             │
+│   ┌─────────────────┐        ┌─────────────────┐           │
+│   │  Next.js Web    │        │  React Native   │           │
+│   │  (Port 3000)    │        │  Mobile (Expo)  │           │
+│   └────────┬────────┘        └────────┬────────┘           │
+│            │  Axios                   │  Axios             │
+└────────────┼─────────────────────────┼────────────────────┘
+             │                         │
+             ▼                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Express REST API  (Port 5000)                  │
+│                                                             │
+│  /api/auth      /api/products      /api/orders              │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────────────┐      │
+│  │ Auth     │  │ Product      │  │ Order            │      │
+│  │ Router   │  │ Router       │  │ Router           │      │
+│  └────┬─────┘  └──────┬───────┘  └────────┬─────────┘      │
+│       │               │                   │                 │
+│  ┌────▼─────┐  ┌──────▼───────┐  ┌────────▼─────────┐      │
+│  │ Auth     │  │ Product      │  │ Order            │      │
+│  │ Controller│ │ Controller   │  │ Controller       │      │
+│  └────┬─────┘  └──────┬───────┘  └────────┬─────────┘      │
+│       │               │                   │                 │
+│  ┌────▼───────────────▼───────────────────▼─────────┐       │
+│  │              Mongoose Models                      │       │
+│  │   User  │  Product  │  Order                     │       │
+│  └────────────────────────────────────────┬──────────┘      │
+│                                           │                 │
+│  ┌────────────────────────────────────────▼──────────┐      │
+│  │              Middleware Layer                      │      │
+│  │  verifyJWT  │  errorHandler  │  Firebase verify  │      │
+│  └────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+             │
+             ▼
+┌─────────────────────────────┐    ┌──────────────────────────┐
+│     MongoDB Atlas            │    │   Firebase Auth          │
+│   (produce-ordering-app DB)  │    │   (Google Sign-In)       │
+└─────────────────────────────┘    └──────────────────────────┘
+```
+
+---
+
+## 2. Folder Structure
+
+```
+produce-ordering-app/
+├── backend/
+│   ├── scripts/
+│   │   └── seed.js                  # Seeds DB with 5+ products
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── db.js                # Mongoose connection
+│   │   │   └── firebase.js          # Firebase Admin init
+│   │   ├── middleware/
+│   │   │   ├── auth.js              # JWT verifyToken middleware
+│   │   │   └── errorHandler.js
+│   │   ├── models/
+│   │   │   ├── User.js
+│   │   │   ├── Product.js
+│   │   │   └── Order.js
+│   │   ├── routes/
+│   │   │   ├── auth.routes.js
+│   │   │   ├── product.routes.js
+│   │   │   └── order.routes.js
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.js
+│   │   │   ├── product.controller.js
+│   │   │   └── order.controller.js
+│   │   └── app.js                   # Express app entry point
+│   ├── .env
+│   ├── .env.example
+│   └── package.json
+│
+├── web/
+│   ├── components/
+│   │   ├── Navbar.jsx
+│   │   ├── ProductCard.jsx
+│   │   ├── OrderCard.jsx
+│   │   └── StatusBadge.jsx
+│   ├── lib/
+│   │   ├── api.js                   # Axios instance
+│   │   └── firebase.js              # Firebase Web SDK init
+│   ├── pages/
+│   │   ├── _app.js
+│   │   ├── index.js                 # Redirect to /products
+│   │   ├── login.js
+│   │   ├── register.js
+│   │   ├── products.js              # SSR product list
+│   │   ├── order/new.js             # Place order form
+│   │   └── orders.js                # My orders
+│   ├── styles/
+│   │   └── globals.css
+│   ├── .env.local
+│   ├── .env.example
+│   └── package.json
+│
+├── mobile/
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── client.js            # Axios instance with AsyncStorage token
+│   │   ├── screens/
+│   │   │   ├── LoginScreen.js
+│   │   │   ├── RegisterScreen.js
+│   │   │   ├── ProductListScreen.js
+│   │   │   ├── PlaceOrderScreen.js
+│   │   │   └── MyOrdersScreen.js
+│   │   ├── navigation/
+│   │   │   └── AppNavigator.js      # Stack + Tab navigator
+│   │   ├── context/
+│   │   │   └── AuthContext.js       # JWT storage & refresh
+│   │   └── firebase.js
+│   ├── .env
+│   ├── .env.example
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+## 3. Data Models
+
+### User
+```js
+{
+  _id: ObjectId,
+  name: String (required),
+  email: String (required, unique),
+  password: String (hashed, optional for Firebase users),
+  firebaseUid: String (optional),
+  createdAt: Date
+}
+```
+
+### Product
+```js
+{
+  _id: ObjectId,
+  name: String (required),
+  category: Enum ['Vegetable', 'Fruit'],
+  price: Number (required),   // per unit
+  unit: Enum ['kg', 'piece'],
+  createdAt: Date
+}
+```
+
+### Order
+```js
+{
+  _id: ObjectId,
+  retailer: ObjectId (ref: User, required),
+  product: ObjectId (ref: Product, required),
+  quantity: Number (required, min: 1),
+  deliveryDate: Date (required),
+  status: Enum ['Pending', 'Confirmed', 'Delivered'], default: 'Pending',
+  createdAt: Date
+}
+```
+
+---
+
+## 4. API Routes
+
+### Auth  `POST /api/auth/`
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/register` | No | Register with name, email, password |
+| POST | `/login` | No | Login, returns JWT |
+| POST | `/firebase-login` | No | Verify Firebase idToken, return app JWT |
+
+### Products  `GET /api/products`
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | No | Return all products |
+
+### Orders  `/api/orders`
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/` | JWT | Place a new order |
+| GET | `/` | JWT | Get logged-in retailer's orders |
+
+---
+
+## 5. Auth Flow
+
+```
+Email/Password Registration & Login
+────────────────────────────────────
+Client → POST /api/auth/register → bcrypt hash → save User → return JWT
+Client → POST /api/auth/login    → verify hash → return JWT
+
+Google / Firebase Sign-In
+──────────────────────────
+Client → Firebase SDK → Google Auth → Firebase idToken
+Client → POST /api/auth/firebase-login { idToken }
+Backend → firebase-admin.verifyIdToken(idToken)
+        → find/create User by firebaseUid
+        → sign and return app JWT
+
+Protected Route Access
+───────────────────────
+Client → request with Authorization: Bearer <JWT>
+Backend middleware → jwt.verify(token, JWT_SECRET)
+                  → attach req.user = { userId }
+                  → next()
+```
+
+---
+
+## 6. Technology Decisions
+
+| Decision | Choice | Reason |
+|----------|--------|--------|
+| DB | MongoDB + Mongoose | Flexible schema, Atlas free tier |
+| Auth | JWT (HS256) | Stateless, easy to verify on both web and mobile |
+| Social auth | Firebase Admin SDK | Handles Google OAuth complexity; backend just verifies token |
+| Web framework | Next.js | SSR for products page, file-based routing |
+| Mobile | Expo + React Native | Fastest cross-platform setup for assessment |
+| HTTP client | Axios | Interceptors for token injection |
+| Token storage | localStorage (web), AsyncStorage (mobile) | Platform-appropriate |
+
+---
+
+## 7. Security Notes
+
+- All passwords hashed with bcrypt (salt rounds ≥ 10).
+- JWT secret in `.env`, never committed.
+- Firebase credentials in `.env`, never committed.
+- `.env.example` shows keys without values.
+- Orders API validates ownership — users can only see their own orders.

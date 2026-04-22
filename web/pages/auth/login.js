@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post('/auth/login', formData);
       applyStoredToken(response.data.token);
-      router.push('/products');
+      router.push('/');
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to sign in right now.'));
     } finally {
@@ -68,7 +68,7 @@ export default function LoginPage() {
       });
 
       applyStoredToken(response.data.token);
-      router.push('/products');
+      router.push('/');
     } catch (requestError) {
       await signOutFromFirebase();
 
@@ -94,13 +94,13 @@ export default function LoginPage() {
   return (
     <Layout>
       <Head>
-        <title>Login | Produce Ordering App</title>
+        <title>Login | Foodooza</title>
       </Head>
 
       <div className="auth-card">
         <PageHeader
           title="Login"
-          description="Sign in to place orders and review your delivery history."
+          description="Sign in to browse restaurants, save your cart, and manage your orders."
         />
 
         {successMessage ? <p className="alert success">{successMessage}</p> : null}
@@ -148,7 +148,7 @@ export default function LoginPage() {
         </button>
 
         <p className="helper-text">
-          Need an account? <Link href="/auth/register">Create one</Link>
+          Need an account? <Link href="/register">Create one</Link>
         </p>
       </div>
     </Layout>

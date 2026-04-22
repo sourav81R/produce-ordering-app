@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { theme } from '../constants/theme';
 
-const categories = ['Veg', 'Fruit'];
+const categories = ['All', 'Vegetable', 'Fruit'];
 
 export default function CategoryTabs({ activeCategory, onChange }) {
   return (
@@ -43,4 +43,3 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
-

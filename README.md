@@ -1,234 +1,155 @@
-# Produce Ordering App
+# Foodooza Foundation
 
-A full-stack monorepo for browsing produce, placing orders, and viewing order history across web and mobile clients.
+This repository began as a produce-ordering assessment app and is now being migrated into a Foodooza-style food delivery platform.
 
-## Stack
+The current implementation delivers a real phase-1 foundation:
 
-- `backend`: Node.js, Express, MongoDB, Mongoose, JWT
-- `web`: Next.js, React, Axios, Firebase Web SDK
-- `mobile`: Expo, React Native, Axios, Firebase Web SDK
+- multi-role backend user model: `user`, `restaurant`, `delivery`, `admin`
+- cookie-compatible and bearer-token-compatible JWT auth
+- restaurant and menu domain models: `Shop`, `Item`
+- customer order model with address, payment method, totals, and optional scheduling
+- Foodooza-style customer web app:
+  - discovery landing page
+  - featured restaurants
+  - featured dishes
+  - restaurant menu page
+  - single-shop cart
+  - checkout flow
+  - orders page
 
-## Features
-
-- Email/password registration and login
-- Google sign-in on web and mobile
-- JWT-based protected order APIs
-- Public product catalog
-- Order placement and personal order history
-
-## Monorepo Layout
+## Repo Layout
 
 ```text
 produce-ordering-app/
   backend/
-    scripts/
-    src/
   web/
-    components/
-    lib/
-    pages/
-    styles/
   mobile/
-    src/
+  Foodooza Migration · MD
   README.md
 ```
 
+## Current Stack
+
+- `backend`: Node.js, Express, MongoDB, Mongoose, JWT, Firebase Admin verification
+- `web`: Next.js, React, Axios, Firebase Web SDK
+- `mobile`: Expo React Native app from the earlier phase, still present in the repo
+
+## Current Backend Modules
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/firebase-login`
+- `GET /api/shops`
+- `GET /api/shops/featured`
+- `GET /api/shops/:slug`
+- `GET /api/items/featured`
+- `POST /api/orders`
+- `GET /api/orders`
+
+Legacy `products` endpoints are still present for compatibility with the original project structure.
+
 ## Quick Start
 
-1. Clone the repo and open the root folder:
-
-```bash
-git clone https://github.com/sourav81R/produce-ordering-app.git
-cd produce-ordering-app
-```
-
-2. Install dependencies in each app:
-
-```bash
-cd backend && npm install
-cd ../web && npm install
-cd ../mobile && npm install
-```
-
-3. Configure environment files:
-
-- `backend/.env`
-- `web/.env.local`
-- `mobile/.env`
-
-4. Start the backend:
+### 1. Install dependencies
 
 ```bash
 cd backend
-npm run dev
+npm install
 ```
-
-5. Start the web app:
 
 ```bash
-cd web
-npm run dev
+cd ../web
+npm install
 ```
-
-6. Start the mobile app:
 
 ```bash
-cd mobile
-npm run start
+cd ../mobile
+npm install
 ```
 
-## Environment Setup
-
-### Backend
+### 2. Configure environment files
 
 Create `backend/.env`:
 
 ```env
 PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.4spwhe6.mongodb.net/produce-ordering-app?appName=Cluster0
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=replace-with-a-secure-secret
-FIREBASE_PROJECT_ID=produce-ordering-app
-# Optional: only needed if you want Firebase Admin initialized with a service account.
-FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=optional-service-account-email
+FIREBASE_PRIVATE_KEY="optional-private-key"
 ```
-
-Notes:
-
-- `FIREBASE_PROJECT_ID` is enough for Firebase ID token verification in this backend
-- `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` are optional in this project
-- Keep real secrets only in `.env`, never in example files
-
-### Web
 
 Create `web/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
 API_BASE_URL=http://localhost:5000/api
-NEXT_PUBLIC_FIREBASE_CONFIG={"apiKey":"AIzaSyBhOBrJgkyU0WfyqN9bBOQMLVMnmW5iTuo","authDomain":"produce-ordering-app.firebaseapp.com","projectId":"produce-ordering-app","storageBucket":"produce-ordering-app.firebasestorage.app","messagingSenderId":"49028414977","appId":"1:49028414977:web:6bbbf7394d5d3b7d1e8a00","measurementId":"G-NFHMY8VDNE"}
-ALLOWED_DEV_ORIGINS=192.168.0.108
+NEXT_PUBLIC_FIREBASE_CONFIG={"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
 ```
 
-Notes:
-
-- `npm run dev` uses `next dev --webpack`
-- Set `ALLOWED_DEV_ORIGINS` only if you access the dev server from another device on your LAN
-
-### Mobile
-
-Create `mobile/.env`:
+Create `mobile/.env` if you want to continue using the mobile app:
 
 ```env
 EXPO_PUBLIC_API_BASE_URL=http://localhost:5000/api
-EXPO_PUBLIC_FIREBASE_CONFIG={"apiKey":"AIzaSyBhOBrJgkyU0WfyqN9bBOQMLVMnmW5iTuo","authDomain":"produce-ordering-app.firebaseapp.com","projectId":"produce-ordering-app","storageBucket":"produce-ordering-app.firebasestorage.app","messagingSenderId":"49028414977","appId":"1:49028414977:web:6bbbf7394d5d3b7d1e8a00","measurementId":"G-NFHMY8VDNE"}
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
+EXPO_PUBLIC_FIREBASE_CONFIG={"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-web-client-id
 ```
 
-Notes:
+## Run the Apps
 
-- On a real phone, replace `localhost` in `EXPO_PUBLIC_API_BASE_URL` with your computer’s LAN IP
-- `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is required for mobile Google sign-in
-
-## Firebase Checklist
-
-Before testing Google authentication:
-
-1. Enable `Authentication > Sign-in method > Google` in Firebase
-2. Make sure `localhost` is allowed for web development if needed
-3. Set `FIREBASE_PROJECT_ID` in `backend/.env`
-4. Copy the Firebase web config into `web/.env.local` and `mobile/.env`
-5. Add the Google OAuth web client id to `mobile/.env`
-
-## Available Scripts
-
-### Backend
+Start backend:
 
 ```bash
+cd backend
 npm run dev
-npm run start
+```
+
+Seed sample Foodooza data:
+
+```bash
+cd backend
 npm run seed
 ```
 
-### Web
+Start web:
 
 ```bash
+cd web
 npm run dev
-npm run dev:turbo
-npm run build
-npm run start
 ```
 
-### Mobile
+Open `http://localhost:3000`.
 
-```bash
-npm run start
-npm run android
-npm run ios
-npm run web
-```
+## Seed Data
 
-## API Summary
+The seed script now inserts:
 
-### Auth
+- sample restaurant owners
+- featured restaurants
+- featured menu items
+- legacy produce data for backward compatibility
 
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/firebase-login`
+Important: the seed script clears existing seeded shops, items, orders, and legacy products before inserting fresh sample data.
 
-### Products
+## Current Scope
 
-- `GET /api/products`
+Implemented now:
 
-### Orders
+- customer discovery and checkout on web
+- upgraded backend food domain foundation
+- migration planning doc in [Foodooza Migration · MD](</d:/produce-ordering-app/Foodooza Migration · MD>)
 
-- `POST /api/orders`
-- `GET /api/orders`
+Planned next:
 
-## Example Payloads
-
-### Register
-
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "password": "password123"
-}
-```
-
-### Login
-
-```json
-{
-  "email": "jane@example.com",
-  "password": "password123"
-}
-```
-
-### Firebase Login
-
-```json
-{
-  "idToken": "FIREBASE_ID_TOKEN"
-}
-```
-
-### Place Order
-
-```json
-{
-  "product": "PRODUCT_ID",
-  "quantity": 2,
-  "deliveryDate": "2026-04-25"
-}
-```
+- restaurant dashboard and menu management
+- delivery workflow and earnings
+- admin moderation
+- realtime tracking
+- payments, coupons, wallet, reviews, notifications
 
 ## Notes
 
-- Product browsing is public
-- Orders are protected by JWT auth
-- The backend verifies Firebase sign-in tokens before issuing the app JWT
-- The web app stores the app JWT in `localStorage`
-- The mobile app stores the app JWT in `AsyncStorage`
-- Order status defaults to `Pending`
+- The mobile app remains in the repo, but the main Foodooza migration work completed in this phase is backend + web.
+- Google auth still depends on correct Firebase project setup.
+- There is no full automated test suite yet.

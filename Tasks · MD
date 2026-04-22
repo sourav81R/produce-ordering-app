@@ -1,0 +1,136 @@
+# Task Checklist
+## Produce Ordering App — GoVigi Intern Assessment
+
+Track every implementation task. Check off as you go.
+
+---
+
+## Backend Tasks
+
+### Setup
+- [ ] `mkdir produce-ordering-app && cd produce-ordering-app`
+- [ ] `mkdir backend web mobile`
+- [ ] `cd backend && npm init -y`
+- [ ] Install deps: `npm i express mongoose dotenv bcryptjs jsonwebtoken cors firebase-admin`
+- [ ] Install dev deps: `npm i -D nodemon`
+- [ ] Add `"dev": "nodemon src/app.js"` to package.json scripts
+- [ ] Create `src/app.js` with Express setup and `src/config/db.js`
+- [ ] Create `backend/.env` and `backend/.env.example`
+
+### Models
+- [ ] `src/models/User.js` — name, email, password (optional), firebaseUid (optional)
+- [ ] `src/models/Product.js` — name, category (enum), price, unit (enum)
+- [ ] `src/models/Order.js` — retailer (ref), product (ref), quantity, deliveryDate, status (enum)
+
+### Auth
+- [ ] `src/controllers/auth.controller.js` — register, login, firebaseLogin functions
+- [ ] `src/routes/auth.routes.js` — wire POST /register, /login, /firebase-login
+- [ ] `src/middleware/auth.js` — verifyJWT middleware
+- [ ] `src/config/firebase.js` — Firebase Admin init
+
+### Products
+- [ ] `src/controllers/product.controller.js` — getAllProducts
+- [ ] `src/routes/product.routes.js` — wire GET /
+
+### Orders
+- [ ] `src/controllers/order.controller.js` — placeOrder, getMyOrders
+- [ ] `src/routes/order.routes.js` — wire POST /, GET / (both protected)
+
+### Seed
+- [ ] `scripts/seed.js` — connect to DB, insert 5+ products, disconnect
+- [ ] Add `"seed": "node scripts/seed.js"` to package.json
+- [ ] Seed data includes: at least 3 vegetables + 2 fruits, varied units (kg/piece)
+
+### Error Handling & Validation
+- [ ] 400 for missing required fields on register/login
+- [ ] 401 for wrong password or invalid token
+- [ ] 404 for product not found on order placement
+- [ ] Global error handler middleware in `app.js`
+
+---
+
+## Web (Next.js) Tasks
+
+### Setup
+- [ ] `cd web && npx create-next-app@latest . --no-app --no-ts`
+- [ ] Install deps: `npm i axios firebase`
+- [ ] Create `lib/api.js` — Axios instance pointing to backend, JWT interceptor
+- [ ] Create `lib/firebase.js` — Firebase Web SDK init from env config
+- [ ] Create `web/.env.local` and `web/.env.example`
+
+### Auth Pages
+- [ ] `pages/login.js` — Email/password form + Google Sign-In button, stores JWT
+- [ ] `pages/register.js` — Registration form, redirects to /products on success
+- [ ] Protect `/order/new` and `/orders` — redirect to /login if no JWT
+
+### Product Pages
+- [ ] `pages/products.js` — `getServerSideProps` fetches GET /api/products, renders grid
+- [ ] `components/ProductCard.jsx` — name, category badge, price, unit, "Order" button
+
+### Order Pages
+- [ ] `pages/order/new.js` — product dropdown (pre-filled if coming from ProductCard), quantity input, date picker, submit button
+- [ ] `pages/orders.js` — fetches GET /api/orders, renders list with status badge
+- [ ] `components/StatusBadge.jsx` — green for Delivered, yellow for Confirmed, grey for Pending
+
+### Layout & Styling
+- [ ] `components/Navbar.jsx` — GoVigi logo text, navigation links, logout button
+- [ ] `styles/globals.css` — set font (Inter or similar), green primary (#2E7D32), white background
+- [ ] Responsive layout — works on 375px mobile and 1280px desktop
+
+---
+
+## Mobile (React Native / Expo) Tasks
+
+### Setup
+- [ ] `cd mobile && npx create-expo-app . --template blank`
+- [ ] Install deps: `npm i @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs`
+- [ ] Install deps: `npm i axios @react-native-async-storage/async-storage`
+- [ ] Install deps: `npm i expo-constants @expo/vector-icons`
+- [ ] Create `src/api/client.js` — Axios instance, AsyncStorage token injector
+- [ ] Create `src/context/AuthContext.js` — login, logout, token state
+- [ ] Create `mobile/.env` and `mobile/.env.example`
+
+### Auth Screens
+- [ ] `src/screens/LoginScreen.js` — email/password form + Google button, stores JWT
+- [ ] `src/screens/RegisterScreen.js` — registration form
+
+### Product Screen
+- [ ] `src/screens/ProductListScreen.js` — category filter tabs (All / Vegetable / Fruit), product list
+
+### Order Screens
+- [ ] `src/screens/PlaceOrderScreen.js` — product picker, quantity input, date picker, submit
+- [ ] `src/screens/MyOrdersScreen.js` — list of orders with status badge
+
+### Navigation
+- [ ] `src/navigation/AppNavigator.js` — AuthStack (Login, Register) + MainTab (Products, Orders)
+- [ ] Auto-navigate to MainTab after login, back to AuthStack after logout
+
+---
+
+## Repo & Documentation Tasks
+
+- [ ] Initialize git in root: `git init`
+- [ ] Add root `.gitignore` — node_modules, .env, .env.local, build artifacts
+- [ ] Write `README.md` with:
+  - [ ] Project overview
+  - [ ] Prerequisites section (Node 18+, MongoDB, Firebase project setup steps)
+  - [ ] Backend setup & run instructions
+  - [ ] Web setup & run instructions
+  - [ ] Mobile setup & run instructions
+  - [ ] How to seed the database
+  - [ ] API summary table (method, path, auth, description)
+  - [ ] .env variable explanations for all three apps
+- [ ] Confirm all three `.env.example` files are present and accurate
+- [ ] Final commit with clean message
+
+---
+
+## Pre-Submission Smoke Test
+
+- [ ] Fresh `git clone` → follow README → all three apps run
+- [ ] Register a new user → log in → see products (SSR confirmed via view source on web)
+- [ ] Place an order on web → see it in My Orders with `Pending` status
+- [ ] Same order visible in mobile My Orders
+- [ ] Google Sign-In works on web
+- [ ] No hardcoded secrets anywhere in committed code
+- [ ] All API error cases return appropriate status codes

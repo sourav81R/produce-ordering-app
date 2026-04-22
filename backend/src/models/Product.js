@@ -9,7 +9,7 @@ const productSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Veg', 'Fruit'],
+      enum: ['Vegetable', 'Fruit'],
       required: [true, 'Product category is required.'],
     },
     price: {
@@ -29,4 +29,3 @@ const productSchema = new mongoose.Schema(
 );
 
 export const Product = mongoose.model('Product', productSchema);
-
