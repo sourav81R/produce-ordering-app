@@ -66,7 +66,7 @@ export default function RegisterPage() {
         password: trimmedPassword,
       });
       applyStoredToken(response.data.token);
-      router.push('/');
+      router.push('/products');
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to create your account.'));
     } finally {
@@ -77,13 +77,13 @@ export default function RegisterPage() {
   return (
     <Layout>
       <Head>
-        <title>Create Account | Foodooza</title>
+        <title>Create Account | Produce Ordering App</title>
       </Head>
 
       <div className="auth-card">
         <PageHeader
           title="Register"
-          description="Create your Foodooza customer account and start ordering from curated restaurants."
+          description="Create a retailer account and start placing bulk produce orders."
         />
 
         {error ? (

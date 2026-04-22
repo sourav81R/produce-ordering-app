@@ -1,54 +1,72 @@
-# Foodooza Foundation
+# Produce Ordering App
 
-This repository began as a produce-ordering assessment app and is now being migrated into a Foodooza-style food delivery platform.
+A full-stack B2B produce ordering system for retailers. Users can register, browse vegetables and fruits, place bulk orders with a delivery date, and track order status from `Pending` to `Confirmed` to `Delivered`.
 
-The current implementation delivers a real phase-1 foundation:
+## Stack
 
-- multi-role backend user model: `user`, `restaurant`, `delivery`, `admin`
-- cookie-compatible and bearer-token-compatible JWT auth
-- restaurant and menu domain models: `Shop`, `Item`
-- customer order model with address, payment method, totals, and optional scheduling
-- Foodooza-style customer web app:
-  - discovery landing page
-  - featured restaurants
-  - featured dishes
-  - restaurant menu page
-  - single-shop cart
-  - checkout flow
-  - orders page
+- `backend`: Node.js, Express.js, MongoDB, Mongoose, JWT, bcrypt
+- `web`: Next.js with SSR, Axios
+- `mobile`: React Native with Expo, Axios, AsyncStorage
 
-## Repo Layout
+## Project Structure
 
 ```text
 produce-ordering-app/
   backend/
   web/
   mobile/
-  Foodooza Migration · MD
-  README.md
 ```
 
-## Current Stack
+## Features
 
-- `backend`: Node.js, Express, MongoDB, Mongoose, JWT, Firebase Admin verification
-- `web`: Next.js, React, Axios, Firebase Web SDK
-- `mobile`: Expo React Native app from the earlier phase, still present in the repo
+- Email/password registration and login
+- JWT-protected order routes
+- Public produce catalog
+- SSR products page on web
+- Place order form on web and mobile
+- My Orders screens on web and mobile
+- MongoDB seed script with sample fruits and vegetables
+- Bonus: admin-only order status update endpoint
 
-## Current Backend Modules
+## API Summary
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
-- `POST /api/auth/firebase-login`
-- `GET /api/shops`
-- `GET /api/shops/featured`
-- `GET /api/shops/:slug`
-- `GET /api/items/featured`
+- `GET /api/products`
 - `POST /api/orders`
 - `GET /api/orders`
+- `PATCH /api/orders/:id/status` for admins
 
-Legacy `products` endpoints are still present for compatibility with the original project structure.
+## Environment Variables
 
-## Quick Start
+### Backend
+
+Create `backend/.env` from `backend/.env.example`:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=replace-with-a-secure-secret
+```
+
+### Web
+
+Create `web/.env.local` from `web/.env.local.example`:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
+API_BASE_URL=http://localhost:5000/api
+```
+
+### Mobile
+
+Create `mobile/.env` from `mobile/.env.example`:
+
+```env
+EXPO_PUBLIC_API_BASE_URL=http://localhost:5000/api
+```
+
+## Setup
 
 ### 1. Install dependencies
 
@@ -67,89 +85,65 @@ cd ../mobile
 npm install
 ```
 
-### 2. Configure environment files
-
-Create `backend/.env`:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=replace-with-a-secure-secret
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_CLIENT_EMAIL=optional-service-account-email
-FIREBASE_PRIVATE_KEY="optional-private-key"
-```
-
-Create `web/.env.local`:
-
-```env
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
-API_BASE_URL=http://localhost:5000/api
-NEXT_PUBLIC_FIREBASE_CONFIG={"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
-```
-
-Create `mobile/.env` if you want to continue using the mobile app:
-
-```env
-EXPO_PUBLIC_API_BASE_URL=http://localhost:5000/api
-EXPO_PUBLIC_FIREBASE_CONFIG={"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-web-client-id
-```
-
-## Run the Apps
-
-Start backend:
-
-```bash
-cd backend
-npm run dev
-```
-
-Seed sample Foodooza data:
+### 2. Seed the database
 
 ```bash
 cd backend
 npm run seed
 ```
 
-Start web:
+This inserts sample vegetables and fruits and clears old orders/products first.
+
+### 3. Start the backend
+
+```bash
+cd backend
+npm run dev
+```
+
+### 4. Start the web app
 
 ```bash
 cd web
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000/products`.
 
-## Seed Data
+### 5. Start the mobile app
 
-The seed script now inserts:
+```bash
+cd mobile
+npm start
+```
 
-- sample restaurant owners
-- featured restaurants
-- featured menu items
-- legacy produce data for backward compatibility
+Then open the Expo app on a simulator, emulator, or physical device.
 
-Important: the seed script clears existing seeded shops, items, orders, and legacy products before inserting fresh sample data.
+## Web Pages
 
-## Current Scope
+- `/login`
+- `/register`
+- `/products`
+- `/order/new`
+- `/orders`
 
-Implemented now:
+## Mobile Screens
 
-- customer discovery and checkout on web
-- upgraded backend food domain foundation
-- migration planning doc in [Foodooza Migration · MD](</d:/produce-ordering-app/Foodooza Migration · MD>)
-
-Planned next:
-
-- restaurant dashboard and menu management
-- delivery workflow and earnings
-- admin moderation
-- realtime tracking
-- payments, coupons, wallet, reviews, notifications
+- Login
+- Register
+- Product List with category filter
+- Place Order
+- My Orders
 
 ## Notes
 
-- The mobile app remains in the repo, but the main Foodooza migration work completed in this phase is backend + web.
-- Google auth still depends on correct Firebase project setup.
-- There is no full automated test suite yet.
+- Orders are stored with `userId`, `productId`, `quantity`, `deliveryDate`, and `status`.
+- The web products page uses SSR through `getServerSideProps`.
+- The mobile app stores JWT in AsyncStorage.
+- The web app stores JWT in localStorage and sends it through Axios.
+
+## Beginner Tips
+
+- Seed the backend before testing the product list.
+- Register a new account first, then place orders from web or mobile.
+- If the web or mobile app cannot reach the backend, confirm the backend is running on port `5000`.

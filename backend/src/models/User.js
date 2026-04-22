@@ -36,8 +36,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'restaurant', 'delivery', 'admin'],
-      default: 'user',
+      enum: ['retailer', 'admin'],
+      default: 'retailer',
     },
     suspended: {
       type: Boolean,

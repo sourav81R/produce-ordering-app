@@ -13,21 +13,21 @@ export default function OrdersScreen() {
 
   useFocusEffect(
     useCallback(() => {
-    const loadOrders = async () => {
-      setLoading(true);
-      setError('');
+      const loadOrders = async () => {
+        setLoading(true);
+        setError('');
 
-      try {
-        const response = await apiClient.get('/orders');
-        setOrders(response.data);
-      } catch (requestError) {
-        setError(getApiErrorMessage(requestError, 'Unable to load orders.'));
-      } finally {
-        setLoading(false);
-      }
-    };
+        try {
+          const response = await apiClient.get('/orders');
+          setOrders(response.data);
+        } catch (requestError) {
+          setError(getApiErrorMessage(requestError, 'Unable to load orders.'));
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    loadOrders();
+      loadOrders();
     }, [])
   );
 
@@ -51,9 +51,9 @@ export default function OrdersScreen() {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <View>
-                  <Text style={styles.productName}>{item.product?.name}</Text>
+                  <Text style={styles.productName}>{item.productId?.name}</Text>
                   <Text style={styles.productMeta}>
-                    {item.product?.category} | Rs. {item.product?.price}/{item.product?.unit}
+                    {item.productId?.category} | Rs. {item.productId?.price}/{item.productId?.unit}
                   </Text>
                 </View>
                 <StatusBadge status={item.status} />

@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #f8f3eb;
-  --bg-accent: #fff8f0;
+  --bg: #f5f9f1;
+  --bg-accent: #fbfdf8;
   --surface: rgba(255, 255, 255, 0.88);
   --surface-strong: #ffffff;
-  --surface-soft: #fff3df;
+  --surface-soft: #eef7e8;
   --border: rgba(148, 163, 184, 0.2);
   --text: #1f2937;
   --muted: #5b6472;
-  --primary: #e85d04;
-  --primary-dark: #c2410c;
-  --secondary: #14532d;
+  --primary: #2e7d32;
+  --primary-dark: #256a2a;
+  --secondary: #4caf50;
   --secondary-soft: #d9f4dd;
-  --warning: #c2410c;
+  --warning: #b45309;
   --warning-soft: #ffedd5;
   --info: #1d4ed8;
   --info-soft: #dbeafe;
@@ -743,12 +743,94 @@ select {
   color: var(--danger);
 }
 
+.page-header {
+  display: grid;
+  gap: 10px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.product-card,
+.order-form-shell,
+.order-preview-card {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.product-card {
+  padding: 22px;
+  display: grid;
+  gap: 14px;
+}
+
+.product-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.category-badge,
+.product-unit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.category-badge.vegetable {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.category-badge.fruit {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.product-unit {
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+}
+
+.product-card h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.product-price {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.order-form-shell {
+  padding: 26px;
+}
+
+.order-preview-card {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
 @media (max-width: 1024px) {
   .hero-grid,
   .cart-layout,
   .shop-grid,
   .featured-grid,
-  .menu-grid {
+  .menu-grid,
+  .product-grid {
     grid-template-columns: 1fr;
   }
 
@@ -786,7 +868,8 @@ select {
   .hero-card,
   .summary-card,
   .card,
-  .auth-card {
+  .auth-card,
+  .order-form-shell {
     padding: 22px;
   }
 }

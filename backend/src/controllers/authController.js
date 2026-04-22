@@ -56,7 +56,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     name: name.trim(),
     email: normalizedEmail,
     password: password.trim(),
-    role: ['restaurant', 'delivery'].includes(role) ? role : 'user',
+    role: role === 'admin' ? 'admin' : 'retailer',
   });
 
   return res.status(201).json(buildAuthResponse(res, user, 'User registered successfully.'));
@@ -158,7 +158,7 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
     }
 
     if (!user.role || user.role === 'user') {
-      updates.role = ['restaurant', 'delivery'].includes(role) ? role : 'user';
+      updates.role = role === 'admin' ? 'admin' : 'retailer';
     }
 
     if (Object.keys(updates).length) {
@@ -176,7 +176,7 @@ export const firebaseLoginUser = asyncHandler(async (req, res) => {
     email: normalizedEmail,
     firebaseUid: uid,
     provider: 'google',
-    role: ['restaurant', 'delivery'].includes(role) ? role : 'user',
+    role: role === 'admin' ? 'admin' : 'retailer',
   });
 
   return res.status(200).json(buildAuthResponse(res, user, 'Google login successful.'));

@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { apiClient, getApiErrorMessage, setApiToken } from '../api/client';
-import { signOutFromFirebase } from '../config/firebase';
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'produce-ordering-token';
@@ -42,18 +41,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginWithFirebaseIdToken = async (firebaseIdToken) => {
-    try {
-      const response = await apiClient.post('/auth/firebase-login', {
-        idToken: firebaseIdToken,
-      });
-      await persistJwt(response.data.token);
-      return response.data;
-    } catch (error) {
-      throw new Error(getApiErrorMessage(error, 'Unable to continue with Google.'));
-    }
-  };
-
   const register = async (payload) => {
     try {
       const response = await apiClient.post('/auth/register', payload);
@@ -70,7 +57,6 @@ export function AuthProvider({ children }) {
     await AsyncStorage.removeItem(TOKEN_KEY);
     setApiToken(null);
     setToken(null);
-    await signOutFromFirebase();
   };
 
   const value = useMemo(
@@ -78,7 +64,6 @@ export function AuthProvider({ children }) {
       token,
       authLoading,
       login,
-      loginWithFirebaseIdToken,
       register,
       logout,
     }),

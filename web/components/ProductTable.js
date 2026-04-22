@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function ProductTable({ products }) {
   if (!products.length) {
     return (
@@ -20,8 +22,11 @@ export default function ProductTable({ products }) {
           <h3>{product.name}</h3>
           <p className="product-price">Rs. {product.price.toFixed(2)}</p>
           <p className="muted-text">
-            Fresh produce ready for retailer ordering through the GoVigi catalogue.
+            Fresh produce ready for retailer ordering with a simple bulk purchase flow.
           </p>
+          <Link className="button primary small" href={`/order/new?productId=${product._id}`}>
+            Place Order
+          </Link>
         </article>
       ))}
     </div>
