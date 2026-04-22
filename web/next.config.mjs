@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const isVercel = process.env.VERCEL === '1';
 const allowedDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? '')
   .split(',')
   .map((origin) => origin.trim())
@@ -10,10 +11,14 @@ const allowedDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? '')
 
 const nextConfig = {
   allowedDevOrigins,
-  distDir: '.next-web',
-  turbopack: {
-    root: __dirname,
-  },
+  ...(isVercel ? {} : { distDir: '.next-web' }),
+  ...(isVercel
+    ? {}
+    : {
+        turbopack: {
+          root: __dirname,
+        },
+      }),
 };
 
 export default nextConfig;
