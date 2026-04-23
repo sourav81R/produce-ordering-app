@@ -8,12 +8,14 @@ import PageHeader from '../../components/PageHeader';
 import { apiClient } from '../../lib/api';
 import { applyStoredToken, useRedirectIfAuthenticated } from '../../lib/auth';
 import { getRequestErrorMessage } from '../../lib/errors';
+import { signInWithGooglePopup } from '../../lib/firebase';
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
   useRedirectIfAuthenticated();
@@ -42,6 +44,27 @@ export default function LoginPage() {
       setError(getRequestErrorMessage(requestError, 'Unable to sign in right now.'));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGoogleSubmitting(true);
+    setError('');
+
+    try {
+      const credential = await signInWithGooglePopup();
+      const idToken = await credential.user.getIdToken();
+      const response = await apiClient.post('/auth/google', { idToken });
+      applyStoredToken(response.data.token);
+      router.push('/products');
+    } catch (requestError) {
+      if (requestError?.code === 'auth/popup-closed-by-user') {
+        setError('Google sign-in was cancelled before completion.');
+      } else {
+        setError(getRequestErrorMessage(requestError, 'Unable to continue with Google right now.'));
+      }
+    } finally {
+      setGoogleSubmitting(false);
     }
   };
 
@@ -87,6 +110,37 @@ export default function LoginPage() {
             {submitting ? 'Signing in...' : 'Login'}
           </button>
         </form>
+
+        <div className="auth-divider">or</div>
+
+        <button
+          className="button google-button full-width"
+          type="button"
+          onClick={handleGoogleLogin}
+          disabled={googleSubmitting}
+        >
+          <span className="google-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path
+                fill="#EA4335"
+                d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.8-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.9 1.5l2.7-2.6C17 3.2 14.8 2.2 12 2.2 6.9 2.2 2.8 6.4 2.8 11.5s4.1 9.3 9.2 9.3c5.3 0 8.8-3.7 8.8-8.9 0-.6-.1-1.1-.2-1.6H12Z"
+              />
+              <path
+                fill="#34A853"
+                d="M2.8 11.5c0 1.7.6 3.3 1.7 4.6l3-2.3c-.4-.7-.7-1.5-.7-2.3s.2-1.6.7-2.3l-3-2.3c-1.1 1.3-1.7 2.9-1.7 4.6Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M12 20.8c2.5 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.8-3.1.8-2.5 0-4.6-1.7-5.4-4l-3 2.3c1.6 3.2 4.8 5.3 8.4 5.3Z"
+              />
+              <path
+                fill="#4285F4"
+                d="M18 18.6c1.7-1.6 2.8-4 2.8-7.1 0-.6-.1-1.1-.2-1.6H12v3.9h5.5c-.3 1.4-1.1 2.6-2.4 3.4l2.9 2.2Z"
+              />
+            </svg>
+          </span>
+          {googleSubmitting ? 'Connecting to Google...' : 'Continue with Google'}
+        </button>
 
         <p className="helper-text">
           Need an account? <Link href="/register">Create one</Link>

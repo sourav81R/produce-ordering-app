@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   GoogleAuthProvider,
+  signInWithPopup,
   getAuth,
   setPersistence,
   signOut,
@@ -54,7 +55,20 @@ export const createGoogleProvider = () => {
   const provider = new GoogleAuthProvider();
   provider.addScope('email');
   provider.addScope('profile');
+  provider.setCustomParameters({
+    prompt: 'select_account',
+  });
   return provider;
+};
+
+export const signInWithGooglePopup = async () => {
+  const auth = await getFirebaseAuth();
+
+  if (!auth) {
+    throw new Error('Google sign-in is only available in the browser.');
+  }
+
+  return signInWithPopup(auth, createGoogleProvider());
 };
 
 export const signOutFromFirebase = async () => {
