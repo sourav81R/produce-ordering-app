@@ -8,7 +8,15 @@ import PageHeader from '../../components/PageHeader';
 import { apiClient } from '../../lib/api';
 import { applyStoredToken, useRedirectIfAuthenticated } from '../../lib/auth';
 import { getRequestErrorMessage } from '../../lib/errors';
-import { signInWithGooglePopup } from '../../lib/firebase';
+import { getGoogleRedirectSignInResult, startGoogleSignIn } from '../../lib/firebase';
+
+const getGoogleAuthErrorMessage = (requestError) => {
+  if (requestError?.response?.status === 404) {
+    return 'Google sign-in is not available on the deployed backend yet. Redeploy the Render API, then try again.';
+  }
+
+  return getRequestErrorMessage(requestError, 'Unable to continue with Google right now.');
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,6 +33,44 @@ export default function LoginPage() {
       setSuccessMessage('Registration complete. Please sign in.');
     }
   }, [router.query.registered]);
+
+  useEffect(() => {
+    let active = true;
+
+    const finalizeGoogleRedirect = async () => {
+      try {
+        const result = await getGoogleRedirectSignInResult();
+
+        if (!active || !result?.user) {
+          return;
+        }
+
+        setGoogleSubmitting(true);
+        setError('');
+
+        const idToken = await result.user.getIdToken();
+        const response = await apiClient.post('/auth/google', { idToken });
+        applyStoredToken(response.data.token);
+        router.replace('/products');
+      } catch (requestError) {
+        if (!active) {
+          return;
+        }
+
+        setError(getGoogleAuthErrorMessage(requestError));
+      } finally {
+        if (active) {
+          setGoogleSubmitting(false);
+        }
+      }
+    };
+
+    finalizeGoogleRedirect();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -52,7 +98,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const credential = await signInWithGooglePopup();
+      const { redirected, credential } = await startGoogleSignIn();
+
+      if (redirected) {
+        return;
+      }
+
       const idToken = await credential.user.getIdToken();
       const response = await apiClient.post('/auth/google', { idToken });
       applyStoredToken(response.data.token);
@@ -61,7 +112,7 @@ export default function LoginPage() {
       if (requestError?.code === 'auth/popup-closed-by-user') {
         setError('Google sign-in was cancelled before completion.');
       } else {
-        setError(getRequestErrorMessage(requestError, 'Unable to continue with Google right now.'));
+        setError(getGoogleAuthErrorMessage(requestError));
       }
     } finally {
       setGoogleSubmitting(false);

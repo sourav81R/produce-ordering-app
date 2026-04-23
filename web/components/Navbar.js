@@ -13,11 +13,13 @@ const authLinks = [
 export default function Navbar() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = getStoredToken();
     setIsAuthenticated(Boolean(token));
     setApiToken(token);
+    setMenuOpen(false);
   }, [router.pathname]);
 
   const handleLogout = async () => {
@@ -37,35 +39,49 @@ export default function Navbar() {
           <p className="brand-subtitle">Bulk produce ordering for retailers, built with a simple workflow.</p>
         </div>
 
-        <nav className="site-nav">
-          {publicLinks.map((link) => (
-            <Link key={link.href} className="nav-link" href={link.href}>
-              {link.label}
-            </Link>
-          ))}
+        <div className="site-header-actions">
+          <button
+            className="nav-toggle"
+            type="button"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
 
-          {isAuthenticated ? (
-            <>
-              {authLinks.map((link) => (
-                <Link key={link.href} className="nav-link" href={link.href}>
-                  {link.label}
+          <nav className={`site-nav ${menuOpen ? 'is-open' : ''}`}>
+            {publicLinks.map((link) => (
+              <Link key={link.href} className="nav-link" href={link.href}>
+                {link.label}
+              </Link>
+            ))}
+
+            {isAuthenticated ? (
+              <>
+                {authLinks.map((link) => (
+                  <Link key={link.href} className="nav-link" href={link.href}>
+                    {link.label}
+                  </Link>
+                ))}
+                <button className="button secondary small" type="button" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link className="nav-link" href="/login">
+                  Login
                 </Link>
-              ))}
-              <button className="button secondary small" type="button" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link className="nav-link" href="/login">
-                Login
-              </Link>
-              <Link className="button primary small" href="/register">
-                Register
-              </Link>
-            </>
-          )}
-        </nav>
+                <Link className="button primary small" href="/register">
+                  Register
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </div>
     </header>
   );

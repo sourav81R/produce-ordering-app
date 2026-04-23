@@ -1,9 +1,11 @@
 import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   GoogleAuthProvider,
-  signInWithPopup,
+  getRedirectResult,
   getAuth,
   setPersistence,
+  signInWithPopup,
+  signInWithRedirect,
   signOut,
   browserLocalPersistence,
 } from 'firebase/auth';
@@ -69,6 +71,35 @@ export const signInWithGooglePopup = async () => {
   }
 
   return signInWithPopup(auth, createGoogleProvider());
+};
+
+export const startGoogleSignIn = async () => {
+  const auth = await getFirebaseAuth();
+
+  if (!auth) {
+    throw new Error('Google sign-in is only available in the browser.');
+  }
+
+  const provider = createGoogleProvider();
+  const useRedirect = window.matchMedia('(max-width: 768px)').matches;
+
+  if (useRedirect) {
+    await signInWithRedirect(auth, provider);
+    return { redirected: true, credential: null };
+  }
+
+  const credential = await signInWithPopup(auth, provider);
+  return { redirected: false, credential };
+};
+
+export const getGoogleRedirectSignInResult = async () => {
+  const auth = await getFirebaseAuth();
+
+  if (!auth) {
+    return null;
+  }
+
+  return getRedirectResult(auth);
 };
 
 export const signOutFromFirebase = async () => {
