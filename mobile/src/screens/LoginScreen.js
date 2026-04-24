@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import PrimaryButton from '../components/PrimaryButton';
 import TextField from '../components/TextField';
 import { theme } from '../constants/theme';
@@ -70,6 +71,14 @@ export default function LoginScreen({ onSwitchMode }) {
             />
             <PrimaryButton title="Login" onPress={handleLogin} loading={submitting} />
           </View>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <GoogleSignInButton onError={setError} />
 
           <View style={styles.helperRow}>
             <Text style={styles.helperText}>Need an account? </Text>
@@ -155,5 +164,20 @@ const styles = StyleSheet.create({
   linkText: {
     color: theme.colors.secondary,
     fontWeight: '700',
+  },
+  dividerRow: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    color: theme.colors.muted,
+    fontWeight: '600',
   },
 });

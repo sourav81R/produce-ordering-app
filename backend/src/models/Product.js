@@ -22,6 +22,26 @@ const productSchema = new mongoose.Schema(
       enum: ['kg', 'piece'],
       required: [true, 'Product unit is required.'],
     },
+    emoji: {
+      type: String,
+      default: '🌿',
+      trim: true,
+    },
+    color: {
+      type: String,
+      default: '#4CAF50',
+      trim: true,
+    },
+    tag: {
+      type: String,
+      enum: ['bestseller', 'organic', 'seasonal', 'new', 'premium', null],
+      default: null,
+    },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
   },
   {
     timestamps: true,

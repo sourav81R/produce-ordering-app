@@ -3,8 +3,8 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   browserLocalPersistence,
   GoogleAuthProvider,
-  getAuth,
   getReactNativePersistence,
+  getAuth,
   initializeAuth,
   setPersistence,
   signInWithCredential,
@@ -51,8 +51,32 @@ try {
 
 export const mobileFirebaseAuth = firebaseAuth;
 
-export const signInToFirebaseWithGoogleIdToken = async (googleIdToken) => {
-  const credential = GoogleAuthProvider.credential(googleIdToken);
+export const getGoogleAuthClientIds = () => ({
+  clientId:
+    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ||
+    process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
+    process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ||
+    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+    '',
+  androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+});
+
+export const isGoogleAuthConfigured = (clientIds = getGoogleAuthClientIds()) =>
+  Boolean(
+    clientIds.clientId ||
+      clientIds.androidClientId ||
+      clientIds.iosClientId ||
+      clientIds.webClientId
+  );
+
+export const signInToFirebaseWithGoogleToken = async ({ idToken, accessToken }) => {
+  if (!idToken && !accessToken) {
+    throw new Error('Google sign-in did not return a usable token.');
+  }
+
+  const credential = GoogleAuthProvider.credential(idToken || null, accessToken || null);
   return signInWithCredential(mobileFirebaseAuth, credential);
 };
 
@@ -60,6 +84,9 @@ export const signInToFirebaseWithGooglePopup = async () => {
   const provider = new GoogleAuthProvider();
   provider.addScope('email');
   provider.addScope('profile');
+  provider.setCustomParameters({
+    prompt: 'select_account',
+  });
 
   await setPersistence(mobileFirebaseAuth, browserLocalPersistence);
   return signInWithPopup(mobileFirebaseAuth, provider);

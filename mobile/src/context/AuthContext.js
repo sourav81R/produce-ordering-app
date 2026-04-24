@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { apiClient, getApiErrorMessage, setApiToken } from '../api/client';
+import { signOutFromFirebase } from '../config/firebase';
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'produce-ordering-token';
@@ -53,7 +54,18 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loginWithGoogle = async (idToken) => {
+    try {
+      const response = await apiClient.post('/auth/google', { idToken });
+      await persistJwt(response.data.token);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, 'Unable to continue with Google.'));
+    }
+  };
+
   const logout = async () => {
+    await signOutFromFirebase();
     await AsyncStorage.removeItem(TOKEN_KEY);
     setApiToken(null);
     setToken(null);
@@ -65,6 +77,7 @@ export function AuthProvider({ children }) {
       authLoading,
       login,
       register,
+      loginWithGoogle,
       logout,
     }),
     [token, authLoading]

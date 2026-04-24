@@ -1,9 +1,9 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text } from 'react-native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import MyOrdersScreen from './src/screens/MyOrdersScreen';
@@ -38,8 +38,13 @@ function LoadingScreen() {
   );
 }
 
-function PlaceOrderRoute({ navigation }) {
-  return <PlaceOrderScreen onOrderPlaced={() => navigation.navigate('My Orders')} />;
+function PlaceOrderRoute({ navigation, route }) {
+  return (
+    <PlaceOrderScreen
+      route={route}
+      onOrderPlaced={() => navigation.navigate('My Orders')}
+    />
+  );
 }
 
 function MainTabs() {
@@ -54,24 +59,49 @@ function MainTabs() {
           fontWeight: '700',
         },
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.muted,
+        tabBarInactiveTintColor: '#BDBDBD',
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 6,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
         },
         tabBarIcon: ({ color, size }) => {
           const iconMap = {
-            Products: 'sprout',
-            'Place Order': 'cart-outline',
-            'My Orders': 'clipboard-text-outline',
+            'Browse Catalogue': {
+              active: 'leaf',
+              inactive: 'leaf-outline',
+            },
+            'Place Order': {
+              active: 'cart',
+              inactive: 'cart-outline',
+            },
+            'My Orders': {
+              active: 'receipt',
+              inactive: 'receipt-outline',
+            },
           };
 
-          return <MaterialCommunityIcons name={iconMap[route.name]} color={color} size={size} />;
+          const icons = iconMap[route.name];
+          const active = color === theme.colors.primary;
+
+          return (
+            <Ionicons
+              name={active ? icons.active : icons.inactive}
+              color={color}
+              size={size}
+            />
+          );
         },
       })}
     >
       <Tab.Screen
-        name="Products"
+        name="Browse Catalogue"
         component={ProductListScreen}
         options={{ title: 'Browse Catalogue' }}
       />
@@ -111,12 +141,11 @@ function AppShell() {
             name="Catalogue"
             component={MainTabs}
             options={{
+              title: '\uD83C\uDF3F GoVigi',
               headerRight: () => (
-                <View style={styles.headerButtonWrap}>
-                  <Text style={styles.headerButtonText} onPress={logout}>
-                    Logout
-                  </Text>
-                </View>
+                <Pressable style={styles.headerIconButton} onPress={logout}>
+                  <Ionicons name="log-out-outline" size={20} color="#ffffff" />
+                </Pressable>
               ),
             }}
           />
@@ -148,11 +177,8 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
     fontSize: 16,
   },
-  headerButtonWrap: {
-    paddingHorizontal: 4,
-  },
-  headerButtonText: {
-    color: '#ffffff',
-    fontWeight: '700',
+  headerIconButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
   },
 });

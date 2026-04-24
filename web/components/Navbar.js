@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { clearStoredToken, getStoredToken } from '../lib/auth';
 import { setApiToken } from '../lib/api';
 
-const publicLinks = [{ href: '/products', label: 'Products' }];
+const publicLinks = [{ href: '/products', label: 'Browse' }];
 const authLinks = [
   { href: '/order/new', label: 'Place Order' },
-  { href: '/orders', label: 'Orders' },
+  { href: '/orders', label: 'My Orders' },
 ];
 
 export default function Navbar() {
@@ -32,12 +32,12 @@ export default function Navbar() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <div className="brand-wrap">
-          <Link className="brand" href="/products">
-            Produce Ordering App
-          </Link>
-          <p className="brand-subtitle">Bulk produce ordering for retailers, built with a simple workflow.</p>
-        </div>
+        <Link className="brand" href="/products">
+          <span className="brand-mark" aria-hidden="true">
+            🌿
+          </span>
+          <span>GoVigi</span>
+        </Link>
 
         <div className="site-header-actions">
           <button
@@ -54,7 +54,11 @@ export default function Navbar() {
 
           <nav className={`site-nav ${menuOpen ? 'is-open' : ''}`}>
             {publicLinks.map((link) => (
-              <Link key={link.href} className="nav-link" href={link.href}>
+              <Link
+                key={link.href}
+                className={`nav-link ${router.pathname === link.href ? 'active' : ''}`}
+                href={link.href}
+              >
                 {link.label}
               </Link>
             ))}
@@ -62,20 +66,24 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 {authLinks.map((link) => (
-                  <Link key={link.href} className="nav-link" href={link.href}>
+                  <Link
+                    key={link.href}
+                    className={`nav-link ${router.pathname === link.href ? 'active' : ''}`}
+                    href={link.href}
+                  >
                     {link.label}
                   </Link>
                 ))}
-                <button className="button secondary small" type="button" onClick={handleLogout}>
+                <button className="button secondary small nav-logout" type="button" onClick={handleLogout}>
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link className="nav-link" href="/login">
+                <Link className={`nav-link ${router.pathname === '/login' ? 'active' : ''}`} href="/login">
                   Login
                 </Link>
-                <Link className="button primary small" href="/register">
+                <Link className="button secondary small nav-logout" href="/register">
                   Register
                 </Link>
               </>

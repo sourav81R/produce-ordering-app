@@ -6,6 +6,7 @@ import PageHeader from '../../components/PageHeader';
 import { apiClient } from '../../lib/api';
 import { useRequireAuth } from '../../lib/auth';
 import { formatDisplayDate } from '../../lib/date';
+import { DUMMY_PRODUCTS } from '../../lib/dummyProducts';
 import { getRequestErrorMessage } from '../../lib/errors';
 
 export default function PlaceOrderPage() {
@@ -26,9 +27,19 @@ export default function PlaceOrderPage() {
     const loadProducts = async () => {
       try {
         const response = await apiClient.get('/products');
-        setProducts(response.data);
+        const data = Array.isArray(response.data?.products)
+          ? response.data.products
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
+        const nextProducts = data.length ? data : DUMMY_PRODUCTS;
+        setProducts(nextProducts);
 
-        const initialProductId = router.query.productId || response.data[0]?._id || '';
+        const initialProductId =
+          router.query.product ||
+          router.query.productId ||
+          nextProducts[0]?._id ||
+          '';
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -38,7 +49,23 @@ export default function PlaceOrderPage() {
           deliveryDate: tomorrow.toISOString().slice(0, 10),
         });
       } catch (requestError) {
-        setError(getRequestErrorMessage(requestError, 'Unable to load products.'));
+        const nextProducts = DUMMY_PRODUCTS;
+        setProducts(nextProducts);
+
+        const initialProductId =
+          router.query.product ||
+          router.query.productId ||
+          nextProducts[0]?._id ||
+          '';
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        setFormData({
+          productId: initialProductId,
+          quantity: '1',
+          deliveryDate: tomorrow.toISOString().slice(0, 10),
+        });
+        setError(getRequestErrorMessage(requestError, 'Showing demo produce while products load.'));
       } finally {
         setLoadingProducts(false);
       }
@@ -47,7 +74,7 @@ export default function PlaceOrderPage() {
     if (!checkingAuth) {
       loadProducts();
     }
-  }, [checkingAuth, router.query.productId]);
+  }, [checkingAuth, router.query.product, router.query.productId]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

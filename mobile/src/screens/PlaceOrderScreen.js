@@ -13,9 +13,10 @@ import { apiClient, getApiErrorMessage } from '../api/client';
 import PrimaryButton from '../components/PrimaryButton';
 import TextField from '../components/TextField';
 import { theme } from '../constants/theme';
+import { DUMMY_PRODUCTS } from '../data/dummyProducts';
 import { formatDisplayDate, formatInputDate } from '../utils/date';
 
-export default function PlaceOrderScreen({ onOrderPlaced }) {
+export default function PlaceOrderScreen({ onOrderPlaced, route }) {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -24,24 +25,34 @@ export default function PlaceOrderScreen({ onOrderPlaced }) {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const presetProductId = route?.params?.productId;
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         const response = await apiClient.get('/products');
-        setProducts(response.data);
-        if (response.data.length) {
-          setSelectedProduct(response.data[0]._id);
-        }
+        const data = Array.isArray(response.data?.products)
+          ? response.data.products
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
+        const nextProducts = data.length ? data : DUMMY_PRODUCTS;
+
+        setProducts(nextProducts);
+        setSelectedProduct(presetProductId || nextProducts[0]?._id || '');
       } catch (requestError) {
-        setError(getApiErrorMessage(requestError, 'Unable to load products.'));
+        const nextProducts = DUMMY_PRODUCTS;
+
+        setProducts(nextProducts);
+        setSelectedProduct(presetProductId || nextProducts[0]?._id || '');
+        setError(getApiErrorMessage(requestError, 'Showing demo produce while products load.'));
       } finally {
         setLoadingProducts(false);
       }
     };
 
     loadProducts();
-  }, []);
+  }, [presetProductId]);
 
   const handleSubmit = async () => {
     if (!selectedProduct) {
