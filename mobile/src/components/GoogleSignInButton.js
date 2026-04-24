@@ -18,6 +18,22 @@ const placeholderGoogleClientId = 'missing-google-client-id';
 const getGoogleAuthErrorMessage = (error) =>
   error?.message || 'Unable to continue with Google right now.';
 
+const getMissingGoogleConfigMessage = () => {
+  if (Platform.OS === 'android') {
+    return (
+      'Google sign-in is not configured in this APK yet. Add EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID in mobile/.env, then rebuild and reinstall the Android app.'
+    );
+  }
+
+  if (Platform.OS === 'ios') {
+    return (
+      'Google sign-in is not configured in this app yet. Add EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in mobile/.env, then rebuild and reinstall the iOS app.'
+    );
+  }
+
+  return 'Google sign-in is not configured yet. Add the Expo Google client IDs in mobile/.env and rebuild the app.';
+};
+
 export default function GoogleSignInButton({ onError }) {
   const { loginWithGoogle } = useAuth();
   const [submitting, setSubmitting] = useState(false);
@@ -104,9 +120,7 @@ export default function GoogleSignInButton({ onError }) {
     }
 
     if (!googleAuthConfigured) {
-      onError?.(
-        'Google sign-in is not configured yet. Add the Expo Google client IDs in mobile/.env and rebuild the app.'
-      );
+      onError?.(getMissingGoogleConfigMessage());
       return;
     }
 

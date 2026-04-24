@@ -50,6 +50,31 @@ ANDROID_VERSION_CODE=1
 IOS_BUILD_NUMBER=1
 ```
 
+### Google Sign-In setup for Android APKs
+
+If the app shows "Google sign-in is not configured", the APK was built without a
+real Android OAuth client ID. For this project, create the Android credential
+for:
+
+- package name: `com.produceordering.app`
+- current local release keystore SHA1: `5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25`
+
+Then copy the generated client ID into:
+
+```env
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+```
+
+You can also set:
+
+```env
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+```
+
+After updating `mobile/.env`, rebuild and reinstall the APK. Expo environment
+variables are bundled into the native app at build time, so changing `.env`
+alone will not fix an already installed APK.
+
 ## 3. Build an installable APK
 
 For a production-like APK that installs directly on Android devices:
