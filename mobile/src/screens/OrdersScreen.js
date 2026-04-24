@@ -1,35 +1,53 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient, getApiErrorMessage } from '../api/client';
 import StatusBadge from '../components/StatusBadge';
 import { theme } from '../constants/theme';
 import { formatDisplayDate } from '../utils/date';
 
+const getDisplayStatus = (order) => (order.cancelledAt ? 'Cancelled' : order.status);
+
 export default function OrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const loadOrders = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await apiClient.get('/orders');
+      const nextOrders = Array.isArray(response.data?.orders)
+        ? response.data.orders
+        : Array.isArray(response.data)
+          ? response.data
+          : [];
+      setOrders(nextOrders);
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Unable to load orders.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
-      const loadOrders = async () => {
-        setLoading(true);
-        setError('');
-
-        try {
-          const response = await apiClient.get('/orders');
-          setOrders(response.data);
-        } catch (requestError) {
-          setError(getApiErrorMessage(requestError, 'Unable to load orders.'));
-        } finally {
-          setLoading(false);
-        }
-      };
-
       loadOrders();
     }, [])
   );
+
+  const handleCancel = async (orderId) => {
+    try {
+      await apiClient.post(`/orders/${orderId}/cancel`, {
+        reason: 'Cancelled from the GoVigi mobile app',
+      });
+      await loadOrders();
+    } catch (requestError) {
+      Alert.alert('Unable to cancel order', getApiErrorMessage(requestError, 'Please try again.'));
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -51,18 +69,36 @@ export default function OrdersScreen() {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <View>
-                  <Text style={styles.productName}>{item.productId?.name}</Text>
-                  <Text style={styles.productMeta}>
-                    {item.productId?.category} | Rs. {item.productId?.price}/{item.productId?.unit}
-                  </Text>
+                  <Text style={styles.orderId}>{`Order #${item._id.slice(-8)}`}</Text>
+                  <Text style={styles.orderMeta}>{formatDisplayDate(item.createdAt)}</Text>
                 </View>
-                <StatusBadge status={item.status} />
+                <StatusBadge status={getDisplayStatus(item)} />
               </View>
-              <Text style={styles.detailText}>Quantity: {item.quantity}</Text>
-              <Text style={styles.detailText}>
-                Delivery Date: {formatDisplayDate(item.deliveryDate)}
-              </Text>
-              <Text style={styles.detailText}>Ordered On: {formatDisplayDate(item.createdAt)}</Text>
+
+              <View style={styles.itemsList}>
+                {item.items?.map((orderItem) => (
+                  <View style={styles.orderItem} key={`${item._id}-${orderItem.product?._id || orderItem.name}`}>
+                    <Text style={styles.orderEmoji}>{orderItem.emoji}</Text>
+                    <View>
+                      <Text style={styles.orderItemName}>{orderItem.name}</Text>
+                      <Text style={styles.orderItemMeta}>
+                        {`${orderItem.quantity} × ₹${orderItem.price} / ${orderItem.unit}`}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.detailText}>{`Delivery: ${formatDisplayDate(item.deliveryDate)}`}</Text>
+              <Text style={styles.detailText}>{`Payment: ${item.paymentMethod} · ${item.paymentStatus}`}</Text>
+              <Text style={styles.detailText}>{`Total: ₹${item.totalAmount}`}</Text>
+              {item.cancelReason ? <Text style={styles.detailMuted}>{`Reason: ${item.cancelReason}`}</Text> : null}
+
+              {!item.cancelledAt && item.status !== 'Delivered' ? (
+                <TouchableOpacity style={styles.cancelButton} onPress={() => handleCancel(item._id)} activeOpacity={0.75}>
+                  <Text style={styles.cancelButtonText}>Cancel Order</Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           )}
           ListEmptyComponent={
@@ -78,6 +114,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     gap: 14,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    backgroundColor: theme.colors.background,
   },
   heading: {
     fontSize: 24,
@@ -103,8 +142,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.accent,
+    gap: 12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -112,18 +150,49 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'flex-start',
   },
-  productName: {
+  orderId: {
     fontSize: 18,
     fontWeight: '700',
     color: theme.colors.text,
   },
-  productMeta: {
+  orderMeta: {
     marginTop: 6,
     color: theme.colors.muted,
   },
-  detailText: {
-    marginTop: 10,
+  itemsList: {
+    gap: 10,
+  },
+  orderItem: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  orderEmoji: {
+    fontSize: 24,
+  },
+  orderItemName: {
+    fontWeight: '700',
     color: theme.colors.text,
+  },
+  orderItemMeta: {
+    color: theme.colors.muted,
+  },
+  detailText: {
+    color: theme.colors.text,
+  },
+  detailMuted: {
+    color: theme.colors.muted,
+  },
+  cancelButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.dangerSoft,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  cancelButtonText: {
+    color: theme.colors.danger,
+    fontWeight: '700',
   },
   errorText: {
     backgroundColor: theme.colors.dangerSoft,

@@ -19,8 +19,13 @@ const productSchema = new mongoose.Schema(
     },
     unit: {
       type: String,
-      enum: ['kg', 'piece'],
+      enum: ['kg', 'piece', 'dozen', 'bundle'],
       required: [true, 'Product unit is required.'],
+    },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
     },
     emoji: {
       type: String,
@@ -37,15 +42,16 @@ const productSchema = new mongoose.Schema(
       enum: ['bestseller', 'organic', 'seasonal', 'new', 'premium', null],
       default: null,
     },
-    description: {
-      type: String,
-      default: '',
-      trim: true,
+    isAvailable: {
+      type: Boolean,
+      default: true,
     },
   },
   {
     timestamps: true,
   }
 );
+
+productSchema.index({ category: 1, name: 1 });
 
 export const Product = mongoose.model('Product', productSchema);

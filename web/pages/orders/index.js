@@ -8,6 +8,8 @@ import { useRequireAuth } from '../../lib/auth';
 import { formatDisplayDate } from '../../lib/date';
 import { getRequestErrorMessage } from '../../lib/errors';
 
+const getDisplayStatus = (order) => (order.cancelledAt ? 'Cancelled' : order.status);
+
 export default function MyOrdersPage() {
   const { checkingAuth } = useRequireAuth();
   const [orders, setOrders] = useState([]);
@@ -18,7 +20,12 @@ export default function MyOrdersPage() {
     const loadOrders = async () => {
       try {
         const response = await apiClient.get('/orders');
-        setOrders(response.data);
+        const nextOrders = Array.isArray(response.data?.orders)
+          ? response.data.orders
+          : Array.isArray(response.data)
+            ? response.data
+            : [];
+        setOrders(nextOrders);
       } catch (requestError) {
         setError(getRequestErrorMessage(requestError, 'Unable to load your orders.'));
       } finally {
@@ -31,6 +38,23 @@ export default function MyOrdersPage() {
     }
   }, [checkingAuth]);
 
+  const handleCancel = async (orderId) => {
+    try {
+      const response = await apiClient.post(`/orders/${orderId}/cancel`, {
+        reason: 'Cancelled from the GoVigi web portal',
+      });
+      setOrders((current) =>
+        current.map((order) =>
+          order._id === orderId
+            ? { ...order, ...response.data?.order }
+            : order
+        )
+      );
+    } catch (requestError) {
+      setError(getRequestErrorMessage(requestError, 'Unable to cancel this order.'));
+    }
+  };
+
   if (checkingAuth) {
     return null;
   }
@@ -38,13 +62,13 @@ export default function MyOrdersPage() {
   return (
     <Layout>
       <Head>
-        <title>My Orders | Produce Ordering App</title>
+        <title>My Orders | GoVigi Produce Ordering App</title>
       </Head>
 
       <div className="page-stack">
         <PageHeader
           title="My Orders"
-          description="Track the status of your produce orders from placement through delivery."
+          description="Track each produce order from placement through confirmation and delivery."
         />
 
         <div className="card order-list-shell">
@@ -57,38 +81,55 @@ export default function MyOrdersPage() {
           ) : (
             <div className="orders-grid enhanced-orders-grid">
               {orders.map((order) => (
-                <article className="order-card" key={order._id}>
+                <article className="order-card produce-order-card" key={order._id}>
                   <div className="order-card-top">
                     <div>
-                      <h3>{order.productId?.name}</h3>
-                      <p className="muted-text">{order.productId?.category}</p>
+                      <h3>{`Order #${order._id.slice(-8)}`}</h3>
+                      <p className="muted-text">{formatDisplayDate(order.createdAt)}</p>
                     </div>
-                    <StatusBadge status={order.status} />
+                    <StatusBadge status={getDisplayStatus(order)} />
+                  </div>
+
+                  <div className="produce-order-items">
+                    {order.items?.map((item) => (
+                      <div className="produce-order-item" key={`${order._id}-${item.product?._id || item.name}`}>
+                        <span>{item.emoji}</span>
+                        <div>
+                          <strong>{item.name}</strong>
+                          <p className="muted-text">{`${item.quantity} × ₹${item.price} / ${item.unit}`}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <dl className="order-details">
                     <div>
-                      <dt>Quantity</dt>
-                      <dd>{order.quantity}</dd>
-                    </div>
-                    <div>
-                      <dt>Unit Price</dt>
-                      <dd>Rs. {order.productId?.price} / {order.productId?.unit}</dd>
-                    </div>
-                    <div>
-                      <dt>Delivery Date</dt>
+                      <dt>Delivery</dt>
                       <dd>{formatDisplayDate(order.deliveryDate)}</dd>
                     </div>
                     <div>
-                      <dt>Ordered On</dt>
-                      <dd>{formatDisplayDate(order.createdAt)}</dd>
+                      <dt>Payment</dt>
+                      <dd>{order.paymentMethod}</dd>
+                    </div>
+                    <div>
+                      <dt>Payment Status</dt>
+                      <dd>{order.paymentStatus}</dd>
+                    </div>
+                    <div>
+                      <dt>Total</dt>
+                      <dd>₹{order.totalAmount?.toFixed?.(0) || order.totalAmount}</dd>
                     </div>
                   </dl>
 
-                  <div className="order-address">
-                    <strong>Estimated Cost</strong>
-                    <span>Rs. {((order.productId?.price || 0) * order.quantity).toFixed(2)}</span>
-                  </div>
+                  {order.cancelReason ? (
+                    <p className="muted-text">{`Reason: ${order.cancelReason}`}</p>
+                  ) : null}
+
+                  {!order.cancelledAt && order.status !== 'Delivered' ? (
+                    <button className="button secondary small" type="button" onClick={() => handleCancel(order._id)}>
+                      Cancel Order
+                    </button>
+                  ) : null}
                 </article>
               ))}
             </div>

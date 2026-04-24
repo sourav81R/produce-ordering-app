@@ -65,7 +65,7 @@ export default function RegisterPage() {
         email: trimmedEmail,
         password: trimmedPassword,
       });
-      applyStoredToken(response.data.token);
+      applyStoredToken(response.data.token, response.data.user);
       router.push('/products');
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to create your account.'));

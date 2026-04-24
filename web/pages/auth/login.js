@@ -50,7 +50,7 @@ export default function LoginPage() {
 
         const idToken = await result.user.getIdToken();
         const response = await apiClient.post('/auth/google', { idToken });
-        applyStoredToken(response.data.token);
+        applyStoredToken(response.data.token, response.data.user);
         router.replace('/products');
       } catch (requestError) {
         if (!active) {
@@ -84,7 +84,7 @@ export default function LoginPage() {
 
     try {
       const response = await apiClient.post('/auth/login', formData);
-      applyStoredToken(response.data.token);
+      applyStoredToken(response.data.token, response.data.user);
       router.push('/products');
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to sign in right now.'));
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
       const idToken = await credential.user.getIdToken();
       const response = await apiClient.post('/auth/google', { idToken });
-      applyStoredToken(response.data.token);
+      applyStoredToken(response.data.token, response.data.user);
       router.push('/products');
     } catch (requestError) {
       if (requestError?.code === 'auth/popup-closed-by-user') {

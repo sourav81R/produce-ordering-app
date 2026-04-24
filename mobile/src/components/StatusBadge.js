@@ -14,6 +14,10 @@ const statusStyles = {
     backgroundColor: theme.colors.deliveredSoft,
     color: theme.colors.delivered,
   },
+  Cancelled: {
+    backgroundColor: theme.colors.dangerSoft,
+    color: theme.colors.danger,
+  },
 };
 
 export default function StatusBadge({ status }) {

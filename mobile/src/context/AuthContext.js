@@ -5,18 +5,24 @@ import { signOutFromFirebase } from '../config/firebase';
 
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'produce-ordering-token';
+const USER_KEY = 'produce-ordering-user';
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const restoreSession = async () => {
       try {
         const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
+        const storedUser = await AsyncStorage.getItem(USER_KEY);
         if (storedToken) {
           setApiToken(storedToken);
           setToken(storedToken);
+        }
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
       } finally {
         setAuthLoading(false);
@@ -26,16 +32,18 @@ export function AuthProvider({ children }) {
     restoreSession();
   }, []);
 
-  const persistJwt = async (nextToken) => {
+  const persistJwt = async (nextToken, nextUser = null) => {
     await AsyncStorage.setItem(TOKEN_KEY, nextToken);
+    await AsyncStorage.setItem(USER_KEY, JSON.stringify(nextUser || null));
     setApiToken(nextToken);
     setToken(nextToken);
+    setUser(nextUser);
   };
 
   const login = async (email, password) => {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
-      await persistJwt(response.data.token);
+      await persistJwt(response.data.token, response.data.user || null);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Unable to sign in.'));
@@ -46,7 +54,7 @@ export function AuthProvider({ children }) {
     try {
       const response = await apiClient.post('/auth/register', payload);
       if (response.data?.token) {
-        await persistJwt(response.data.token);
+        await persistJwt(response.data.token, response.data.user || null);
       }
       return response.data;
     } catch (error) {
@@ -57,7 +65,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async (idToken) => {
     try {
       const response = await apiClient.post('/auth/google', { idToken });
-      await persistJwt(response.data.token);
+      await persistJwt(response.data.token, response.data.user || null);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error, 'Unable to continue with Google.'));
@@ -67,20 +75,23 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     await signOutFromFirebase();
     await AsyncStorage.removeItem(TOKEN_KEY);
+    await AsyncStorage.removeItem(USER_KEY);
     setApiToken(null);
     setToken(null);
+    setUser(null);
   };
 
   const value = useMemo(
     () => ({
       token,
+      user,
       authLoading,
       login,
       register,
       loginWithGoogle,
       logout,
     }),
-    [token, authLoading]
+    [token, user, authLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

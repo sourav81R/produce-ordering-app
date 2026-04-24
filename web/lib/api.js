@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+const TOKEN_KEY = 'produce-ordering-token';
 const localFallbackBaseUrl = 'http://localhost:5000/api';
 const productionFallbackBaseUrl = 'https://produce-ordering-app.onrender.com/api';
 
@@ -28,6 +29,19 @@ export const getServerApiBaseUrl = () =>
 export const apiClient = axios.create({
   baseURL: getBrowserApiBaseUrl(),
   withCredentials: true,
+});
+
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = window.localStorage.getItem(TOKEN_KEY);
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  return config;
 });
 
 export const buildServerApiClient = (baseURL) =>

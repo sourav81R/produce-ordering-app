@@ -4,13 +4,17 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Pressable, SafeAreaView, StyleSheet, Text } from 'react-native';
-import { AuthProvider, useAuth } from './src/context/AuthContext';
+import CartScreen from './src/screens/CartScreen';
+import CheckoutScreen from './src/screens/CheckoutScreen';
+import FavoritesScreen from './src/screens/FavoritesScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import MyOrdersScreen from './src/screens/MyOrdersScreen';
 import PlaceOrderScreen from './src/screens/PlaceOrderScreen';
 import ProductListScreen from './src/screens/ProductListScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import { theme } from './src/constants/theme';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { CartProvider, useCart } from './src/context/CartContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -38,16 +42,9 @@ function LoadingScreen() {
   );
 }
 
-function PlaceOrderRoute({ navigation, route }) {
-  return (
-    <PlaceOrderScreen
-      route={route}
-      onOrderPlaced={() => navigation.navigate('My Orders')}
-    />
-  );
-}
-
 function MainTabs() {
+  const { count } = useCart();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -71,41 +68,22 @@ function MainTabs() {
           fontSize: 12,
           fontWeight: '600',
         },
-        tabBarIcon: ({ color, size }) => {
+        tabBarBadge: route.name === 'Cart' && count > 0 ? count : undefined,
+        tabBarIcon: ({ color, size, focused }) => {
           const iconMap = {
-            'Browse Catalogue': {
-              active: 'leaf',
-              inactive: 'leaf-outline',
-            },
-            'Place Order': {
-              active: 'cart',
-              inactive: 'cart-outline',
-            },
-            'My Orders': {
-              active: 'receipt',
-              inactive: 'receipt-outline',
-            },
+            Products: focused ? 'leaf' : 'leaf-outline',
+            Cart: focused ? 'cart' : 'cart-outline',
+            Favorites: focused ? 'heart' : 'heart-outline',
+            'My Orders': focused ? 'receipt' : 'receipt-outline',
           };
 
-          const icons = iconMap[route.name];
-          const active = color === theme.colors.primary;
-
-          return (
-            <Ionicons
-              name={active ? icons.active : icons.inactive}
-              color={color}
-              size={size}
-            />
-          );
+          return <Ionicons name={iconMap[route.name]} color={color} size={size} />;
         },
       })}
     >
-      <Tab.Screen
-        name="Browse Catalogue"
-        component={ProductListScreen}
-        options={{ title: 'Browse Catalogue' }}
-      />
-      <Tab.Screen name="Place Order" component={PlaceOrderRoute} />
+      <Tab.Screen name="Products" component={ProductListScreen} options={{ title: 'Browse Catalogue' }} />
+      <Tab.Screen name="Cart" component={CartScreen} />
+      <Tab.Screen name="Favorites" component={FavoritesScreen} />
       <Tab.Screen name="My Orders" component={MyOrdersScreen} />
     </Tab.Navigator>
   );
@@ -138,10 +116,10 @@ function AppShell() {
       {token ? (
         <Stack.Navigator screenOptions={screenOptions}>
           <Stack.Screen
-            name="Catalogue"
+            name="GoVigi"
             component={MainTabs}
             options={{
-              title: '\uD83C\uDF3F GoVigi',
+              title: '🌿 GoVigi',
               headerRight: () => (
                 <Pressable style={styles.headerIconButton} onPress={logout}>
                   <Ionicons name="log-out-outline" size={20} color="#ffffff" />
@@ -149,6 +127,8 @@ function AppShell() {
               ),
             }}
           />
+          <Stack.Screen name="Checkout" component={CheckoutScreen} />
+          <Stack.Screen name="Place Order" component={PlaceOrderScreen} />
         </Stack.Navigator>
       ) : (
         <AuthStack />
@@ -160,7 +140,9 @@ function AppShell() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppShell />
+      <CartProvider>
+        <AppShell />
+      </CartProvider>
     </AuthProvider>
   );
 }

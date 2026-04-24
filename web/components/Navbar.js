@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import { useCart } from '../context/CartContext';
 import { clearStoredToken, getStoredToken } from '../lib/auth';
 import { setApiToken } from '../lib/api';
 
 const publicLinks = [{ href: '/products', label: 'Browse' }];
 const authLinks = [
-  { href: '/order/new', label: 'Place Order' },
+  { href: '/favorites', label: 'Favorites' },
   { href: '/orders', label: 'My Orders' },
 ];
 
@@ -14,6 +15,7 @@ export default function Navbar() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { count, favorites, setDrawer } = useCart();
 
   useEffect(() => {
     const token = getStoredToken();
@@ -72,8 +74,15 @@ export default function Navbar() {
                     href={link.href}
                   >
                     {link.label}
+                    {link.href === '/favorites' ? (
+                      <span className="nav-badge">{favorites.length}</span>
+                    ) : null}
                   </Link>
                 ))}
+                <button className="nav-cart-button" type="button" onClick={() => setDrawer(true)}>
+                  <span>🛒 Cart</span>
+                  {count > 0 ? <span className="nav-cart-count">{count}</span> : null}
+                </button>
                 <button className="button secondary small nav-logout" type="button" onClick={handleLogout}>
                   Logout
                 </button>
