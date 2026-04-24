@@ -1,3 +1,6 @@
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -8,9 +11,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import InlineMessage from '../components/InlineMessage';
 import PrimaryButton from '../components/PrimaryButton';
+import SectionCard from '../components/SectionCard';
 import TextField from '../components/TextField';
 import { theme } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -36,7 +40,7 @@ export default function RegisterScreen({ onSwitchMode }) {
         email: email.trim(),
         password,
       });
-      setSuccess('Registration successful. Redirecting you to the catalogue.');
+      setSuccess('Account created successfully. You can start browsing the catalogue now.');
       setName('');
       setEmail('');
       setPassword('');
@@ -55,22 +59,30 @@ export default function RegisterScreen({ onSwitchMode }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.screen}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.card}>
-          <Text style={styles.heading}>Register</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <LinearGradient colors={['#4F6A24', '#B0871A']} style={styles.hero}>
+          <View style={styles.heroBadge}>
+            <Ionicons name="storefront-outline" size={16} color={theme.colors.white} />
+            <Text style={styles.heroBadgeText}>Retailer onboarding</Text>
+          </View>
+          <Text style={styles.heroTitle}>Create your produce ordering workspace.</Text>
+          <Text style={styles.heroSubtitle}>
+            Register once to manage stock planning, orders, favorites, and delivery updates.
+          </Text>
+        </LinearGradient>
+
+        <SectionCard style={styles.card}>
+          <Text style={styles.heading}>Create account</Text>
           <Text style={styles.subheading}>
-            Create an account to place produce orders from the mobile app.
+            Keep it simple. We only need your name, email, and password to get started.
           </Text>
 
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          {success ? <Text style={styles.successText}>{success}</Text> : null}
+          <InlineMessage message={error} tone="danger" style={styles.message} />
+          <InlineMessage message={success} tone="success" style={styles.message} />
 
           <View style={styles.form}>
             <TextField
-              label="Full Name"
+              label="Full name"
               value={name}
               onChangeText={setName}
               placeholder="Jane Doe"
@@ -89,20 +101,26 @@ export default function RegisterScreen({ onSwitchMode }) {
               onChangeText={setPassword}
               secureTextEntry
               placeholder="At least 6 characters"
+              caption="Use a password you can remember easily while testing the app."
             />
-            <PrimaryButton title="Register" onPress={handleRegister} loading={submitting} />
+            <PrimaryButton
+              title="Create account"
+              onPress={handleRegister}
+              loading={submitting}
+              icon="person-add-outline"
+            />
           </View>
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Text style={styles.dividerText}>or continue with</Text>
             <View style={styles.dividerLine} />
           </View>
 
           <GoogleSignInButton onError={setError} />
 
           <View style={styles.helperRow}>
-            <Text style={styles.helperText}>Already registered? </Text>
+            <Text style={styles.helperText}>Already registered?</Text>
             <Pressable
               onPress={() => {
                 if (onSwitchMode) {
@@ -116,7 +134,7 @@ export default function RegisterScreen({ onSwitchMode }) {
               <Text style={styles.linkText}>Sign in</Text>
             </Pressable>
           </View>
-        </View>
+        </SectionCard>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -130,72 +148,73 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingVertical: 32,
+    gap: 18,
+  },
+  hero: {
+    borderRadius: theme.radius.xl,
+    padding: theme.spacing.xl,
+    gap: 12,
+  },
+  heroBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  heroBadgeText: {
+    color: theme.colors.white,
+    fontWeight: '800',
+  },
+  heroTitle: {
+    color: theme.colors.white,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 38,
+  },
+  heroSubtitle: {
+    color: 'rgba(255,255,255,0.88)',
+    fontSize: 15,
+    lineHeight: 22,
   },
   card: {
-    width: '100%',
-    maxWidth: 520,
-    alignSelf: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 28,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    gap: 16,
   },
   heading: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.text,
   },
   subheading: {
-    marginTop: 8,
     color: theme.colors.muted,
     lineHeight: 22,
   },
+  message: {
+    marginTop: -4,
+  },
   form: {
-    marginTop: 18,
     gap: 16,
-  },
-  errorText: {
-    marginTop: 16,
-    backgroundColor: theme.colors.dangerSoft,
-    color: theme.colors.danger,
-    padding: 12,
-    borderRadius: 12,
-    fontWeight: '600',
-  },
-  successText: {
-    marginTop: 16,
-    backgroundColor: theme.colors.successSoft,
-    color: theme.colors.success,
-    padding: 12,
-    borderRadius: 12,
-    fontWeight: '600',
   },
   helperText: {
     color: theme.colors.muted,
   },
   helperRow: {
-    marginTop: 18,
+    marginTop: 4,
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
+    gap: 6,
   },
   linkText: {
-    color: theme.colors.secondary,
+    color: theme.colors.primary,
     fontWeight: '700',
   },
   dividerRow: {
-    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -206,7 +225,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
   },
   dividerText: {
-    color: theme.colors.muted,
+    color: theme.colors.subtle,
     fontWeight: '600',
+    fontSize: 12,
+    textTransform: 'uppercase',
   },
 });

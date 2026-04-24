@@ -1,20 +1,36 @@
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient, getApiErrorMessage } from '../api/client';
+import EmptyState from '../components/EmptyState';
+import InlineMessage from '../components/InlineMessage';
+import LoadingState from '../components/LoadingState';
+import PrimaryButton from '../components/PrimaryButton';
+import ScreenHeader from '../components/ScreenHeader';
+import SectionCard from '../components/SectionCard';
 import StatusBadge from '../components/StatusBadge';
 import { theme } from '../constants/theme';
 import { formatDisplayDate } from '../utils/date';
+import { formatCurrency } from '../utils/format';
 
 const getDisplayStatus = (order) => (order.cancelledAt ? 'Cancelled' : order.status);
+const getCategoryIcon = (category) =>
+  category === 'Fruit' ? 'nutrition-outline' : 'leaf-outline';
 
 export default function OrdersScreen() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  const loadOrders = async () => {
-    setLoading(true);
+  const loadOrders = async (mode = 'initial') => {
+    if (mode === 'initial') {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
     setError('');
 
     try {
@@ -29,6 +45,7 @@ export default function OrdersScreen() {
       setError(getApiErrorMessage(requestError, 'Unable to load orders.'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -38,74 +55,142 @@ export default function OrdersScreen() {
     }, [])
   );
 
+  const metrics = useMemo(
+    () => ({
+      total: orders.length,
+      open: orders.filter((order) => !order.cancelledAt && order.status !== 'Delivered').length,
+      delivered: orders.filter((order) => order.status === 'Delivered').length,
+    }),
+    [orders]
+  );
+
   const handleCancel = async (orderId) => {
     try {
       await apiClient.post(`/orders/${orderId}/cancel`, {
         reason: 'Cancelled from the GoVigi mobile app',
       });
-      await loadOrders();
+      await loadOrders('refresh');
     } catch (requestError) {
       Alert.alert('Unable to cancel order', getApiErrorMessage(requestError, 'Please try again.'));
     }
   };
 
+  if (loading) {
+    return <LoadingState label="Loading your orders..." />;
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>My Orders</Text>
-      <Text style={styles.subheading}>Track retailer orders and delivery progress in one place.</Text>
+      <FlatList
+        data={orders}
+        keyExtractor={(item) => item._id}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.headerWrap}>
+            <ScreenHeader
+              eyebrow="Orders"
+              title="Track every retailer order"
+              subtitle="See order status, payment details, and delivery dates in one place."
+            />
 
-      {loading ? (
-        <View style={styles.centerState}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
-      ) : error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        <FlatList
-          data={orders}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View>
-                  <Text style={styles.orderId}>{`Order #${item._id.slice(-8)}`}</Text>
-                  <Text style={styles.orderMeta}>{formatDisplayDate(item.createdAt)}</Text>
-                </View>
-                <StatusBadge status={getDisplayStatus(item)} />
-              </View>
-
-              <View style={styles.itemsList}>
-                {item.items?.map((orderItem) => (
-                  <View style={styles.orderItem} key={`${item._id}-${orderItem.product?._id || orderItem.name}`}>
-                    <Text style={styles.orderEmoji}>{orderItem.emoji}</Text>
-                    <View>
-                      <Text style={styles.orderItemName}>{orderItem.name}</Text>
-                      <Text style={styles.orderItemMeta}>
-                        {`${orderItem.quantity} × ₹${orderItem.price} / ${orderItem.unit}`}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-
-              <Text style={styles.detailText}>{`Delivery: ${formatDisplayDate(item.deliveryDate)}`}</Text>
-              <Text style={styles.detailText}>{`Payment: ${item.paymentMethod} · ${item.paymentStatus}`}</Text>
-              <Text style={styles.detailText}>{`Total: ₹${item.totalAmount}`}</Text>
-              {item.cancelReason ? <Text style={styles.detailMuted}>{`Reason: ${item.cancelReason}`}</Text> : null}
-
-              {!item.cancelledAt && item.status !== 'Delivered' ? (
-                <TouchableOpacity style={styles.cancelButton} onPress={() => handleCancel(item._id)} activeOpacity={0.75}>
-                  <Text style={styles.cancelButtonText}>Cancel Order</Text>
-                </TouchableOpacity>
-              ) : null}
+            <View style={styles.metricsRow}>
+              <SectionCard style={styles.metricCard}>
+                <Text style={styles.metricLabel}>Total</Text>
+                <Text style={styles.metricValue}>{metrics.total}</Text>
+              </SectionCard>
+              <SectionCard style={styles.metricCard}>
+                <Text style={styles.metricLabel}>Open</Text>
+                <Text style={styles.metricValue}>{metrics.open}</Text>
+              </SectionCard>
+              <SectionCard style={styles.metricCard}>
+                <Text style={styles.metricLabel}>Delivered</Text>
+                <Text style={styles.metricValue}>{metrics.delivered}</Text>
+              </SectionCard>
             </View>
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No orders yet. Browse our catalogue to get started.</Text>
-          }
-        />
-      )}
+
+            <InlineMessage message={error} tone="danger" />
+          </View>
+        }
+        renderItem={({ item }) => (
+          <SectionCard style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardHeaderCopy}>
+                <Text style={styles.orderId}>{`Order #${item._id.slice(-8).toUpperCase()}`}</Text>
+                <Text style={styles.orderMeta}>Placed on {formatDisplayDate(item.createdAt)}</Text>
+              </View>
+              <StatusBadge status={getDisplayStatus(item)} />
+            </View>
+
+            <View style={styles.itemsList}>
+              {item.items?.map((orderItem) => (
+                <View
+                  style={styles.orderItem}
+                  key={`${item._id}-${orderItem.product?._id || orderItem.name}`}
+                >
+                  <View style={styles.orderIcon}>
+                    <Ionicons
+                      name={getCategoryIcon(orderItem.category)}
+                      size={18}
+                      color={theme.colors.primary}
+                    />
+                  </View>
+                  <View style={styles.orderItemCopy}>
+                    <Text style={styles.orderItemName}>{orderItem.name}</Text>
+                    <Text style={styles.orderItemMeta}>
+                      {`${orderItem.quantity} x ${formatCurrency(orderItem.price)} / ${orderItem.unit}`}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.infoGrid}>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Delivery</Text>
+                <Text style={styles.infoValue}>{formatDisplayDate(item.deliveryDate)}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Payment</Text>
+                <Text style={styles.infoValue}>
+                  {`${item.paymentMethod.toUpperCase()} • ${item.paymentStatus}`}
+                </Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Total</Text>
+                <Text style={styles.infoValue}>{formatCurrency(item.totalAmount)}</Text>
+              </View>
+            </View>
+
+            {item.cancelReason ? (
+              <InlineMessage message={`Cancellation reason: ${item.cancelReason}`} tone="warning" />
+            ) : null}
+
+            {!item.cancelledAt && item.status !== 'Delivered' ? (
+              <PrimaryButton
+                title="Cancel order"
+                onPress={() => handleCancel(item._id)}
+                variant="secondary"
+                icon="close-circle-outline"
+              />
+            ) : null}
+          </SectionCard>
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            icon="receipt-outline"
+            title="No orders yet"
+            description="Place your first order from the catalogue and it will show up here."
+            style={styles.emptyState}
+          />
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => loadOrders('refresh')}
+            tintColor={theme.colors.primary}
+          />
+        }
+      />
     </View>
   );
 }
@@ -113,36 +198,41 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    gap: 14,
-    paddingTop: 16,
-    paddingHorizontal: 16,
     backgroundColor: theme.colors.background,
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: theme.colors.text,
-  },
-  subheading: {
-    color: theme.colors.muted,
-    lineHeight: 22,
-  },
-  centerState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   listContent: {
+    paddingBottom: 24,
     gap: 12,
-    paddingVertical: 8,
+  },
+  headerWrap: {
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 16,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  metricCard: {
+    flex: 1,
+    paddingVertical: 14,
+    gap: 6,
+  },
+  metricLabel: {
+    color: theme.colors.subtle,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  metricValue: {
+    color: theme.colors.text,
+    fontSize: 24,
+    fontWeight: '800',
   },
   card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    gap: 12,
+    marginHorizontal: 16,
+    gap: 14,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -150,13 +240,16 @@ const styles = StyleSheet.create({
     gap: 12,
     alignItems: 'flex-start',
   },
+  cardHeaderCopy: {
+    flex: 1,
+    gap: 4,
+  },
   orderId: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
     color: theme.colors.text,
   },
   orderMeta: {
-    marginTop: 6,
     color: theme.colors.muted,
   },
   itemsList: {
@@ -164,11 +257,20 @@ const styles = StyleSheet.create({
   },
   orderItem: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     alignItems: 'center',
   },
-  orderEmoji: {
-    fontSize: 24,
+  orderIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.primarySoft,
+  },
+  orderItemCopy: {
+    flex: 1,
+    gap: 2,
   },
   orderItemName: {
     fontWeight: '700',
@@ -177,33 +279,24 @@ const styles = StyleSheet.create({
   orderItemMeta: {
     color: theme.colors.muted,
   },
-  detailText: {
-    color: theme.colors.text,
+  infoGrid: {
+    gap: 8,
+    paddingTop: 2,
   },
-  detailMuted: {
-    color: theme.colors.muted,
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  cancelButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: theme.colors.dangerSoft,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  cancelButtonText: {
-    color: theme.colors.danger,
-    fontWeight: '700',
-  },
-  errorText: {
-    backgroundColor: theme.colors.dangerSoft,
-    color: theme.colors.danger,
-    padding: 12,
-    borderRadius: 12,
+  infoLabel: {
+    color: theme.colors.subtle,
     fontWeight: '600',
   },
-  emptyText: {
-    color: theme.colors.muted,
-    textAlign: 'center',
-    marginTop: 18,
+  infoValue: {
+    color: theme.colors.text,
+    fontWeight: '700',
+  },
+  emptyState: {
+    marginTop: 60,
   },
 });

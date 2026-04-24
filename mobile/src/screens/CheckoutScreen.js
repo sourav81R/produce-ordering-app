@@ -1,21 +1,19 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { apiClient, getApiErrorMessage } from '../api/client';
+import EmptyState from '../components/EmptyState';
+import InlineMessage from '../components/InlineMessage';
 import PrimaryButton from '../components/PrimaryButton';
+import ScreenHeader from '../components/ScreenHeader';
+import SectionCard from '../components/SectionCard';
 import { theme } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { formatDisplayDate, formatInputDate } from '../utils/date';
+import { formatCurrency } from '../utils/format';
 
 let RazorpayCheckout;
 try {
@@ -23,6 +21,27 @@ try {
 } catch (_error) {
   RazorpayCheckout = null;
 }
+
+const paymentMethods = [
+  {
+    key: 'cod',
+    title: 'Cash on delivery',
+    subtitle: 'Pay once the order arrives at your store.',
+    icon: 'cash-outline',
+  },
+  {
+    key: 'razorpay',
+    title: 'Pay online',
+    subtitle: 'Use Razorpay to confirm the order immediately.',
+    icon: 'card-outline',
+  },
+  {
+    key: 'wallet',
+    title: 'Wallet',
+    subtitle: 'Use available store credit first.',
+    icon: 'wallet-outline',
+  },
+];
 
 export default function CheckoutScreen() {
   const navigation = useNavigation();
@@ -43,7 +62,7 @@ export default function CheckoutScreen() {
           setPaymentKey(response.data?.keyId || '');
         }
       } catch (_error) {
-        // Keep env fallback only.
+        // Use environment fallback when the config request fails.
       }
     };
 
@@ -76,7 +95,7 @@ export default function CheckoutScreen() {
   const finalizeSuccess = async () => {
     await clearCart();
     await fetchWallet();
-    navigation.navigate('My Orders');
+    navigation.navigate('Home', { screen: 'My Orders' });
   };
 
   const handlePlaceOrder = async () => {
@@ -89,13 +108,7 @@ export default function CheckoutScreen() {
     setError('');
 
     try {
-      if (paymentMethod === 'wallet') {
-        await apiClient.post('/orders', payload);
-        await finalizeSuccess();
-        return;
-      }
-
-      if (paymentMethod === 'cod') {
+      if (paymentMethod === 'wallet' || paymentMethod === 'cod') {
         await apiClient.post('/orders', payload);
         await finalizeSuccess();
         return;
@@ -122,7 +135,7 @@ export default function CheckoutScreen() {
           name: user?.name || '',
         },
         theme: {
-          color: '#2E7D32',
+          color: theme.colors.primary,
         },
       };
 
@@ -135,38 +148,71 @@ export default function CheckoutScreen() {
       await finalizeSuccess();
     } catch (requestError) {
       if (requestError?.code !== 'PAYMENT_CANCELLED') {
-        setError(getApiErrorMessage(requestError, requestError.message || 'Unable to place the order.'));
+        setError(
+          getApiErrorMessage(requestError, requestError.message || 'Unable to place the order.')
+        );
       }
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (!items.length) {
+    return (
+      <View style={styles.emptyWrap}>
+        <ScreenHeader
+          eyebrow="Checkout"
+          title="Nothing to check out yet"
+          subtitle="Return to the catalogue, add items to cart, and come back here to place your order."
+        />
+        <EmptyState
+          icon="bag-handle-outline"
+          title="Your cart is empty"
+          description="Order summary and payment options will appear here after you add products."
+          style={styles.emptyState}
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Checkout</Text>
-      <Text style={styles.subheading}>Confirm your produce items, schedule delivery, and choose payment.</Text>
+      <ScreenHeader
+        eyebrow="Checkout"
+        title="Confirm delivery and payment"
+        subtitle="Review line items, choose a delivery date, and place the order."
+      />
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      <InlineMessage message={error} tone="danger" />
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Order Summary</Text>
+      <SectionCard style={styles.card}>
+        <Text style={styles.sectionTitle}>Order summary</Text>
         <View style={styles.summaryList}>
           {items.map((item) => (
             <View style={styles.summaryItem} key={item.product?._id}>
-              <View>
+              <View style={styles.summaryItemCopy}>
                 <Text style={styles.summaryName}>{item.product?.name}</Text>
-                <Text style={styles.summaryMeta}>{`${item.quantity} × ₹${item.product?.price} / ${item.product?.unit}`}</Text>
+                <Text style={styles.summaryMeta}>
+                  {`${item.quantity} x ${formatCurrency(item.product?.price)} / ${item.product?.unit}`}
+                </Text>
               </View>
-              <Text style={styles.summaryPrice}>{`₹${(item.quantity * (item.product?.price || 0)).toFixed(0)}`}</Text>
+              <Text style={styles.summaryPrice}>
+                {formatCurrency(item.quantity * (item.product?.price || 0))}
+              </Text>
             </View>
           ))}
         </View>
+      </SectionCard>
 
-        <Text style={styles.sectionTitle}>Delivery Date</Text>
-        <TouchableOpacity style={styles.dateInput} onPress={() => setShowDatePicker((current) => !current)} activeOpacity={0.75}>
+      <SectionCard style={styles.card}>
+        <Text style={styles.sectionTitle}>Delivery date</Text>
+        <Pressable
+          style={styles.dateInput}
+          onPress={() => setShowDatePicker((current) => !current)}
+        >
+          <Ionicons name="calendar-outline" size={18} color={theme.colors.primary} />
           <Text style={styles.dateText}>{formatDisplayDate(deliveryDate)}</Text>
-        </TouchableOpacity>
+        </Pressable>
         {showDatePicker ? (
           <DateTimePicker
             value={deliveryDate}
@@ -176,48 +222,76 @@ export default function CheckoutScreen() {
             onChange={handleDateChange}
           />
         ) : null}
+      </SectionCard>
 
-        <Text style={styles.sectionTitle}>Payment Method</Text>
-        <View style={styles.paymentGrid}>
-          {['cod', 'razorpay', 'wallet'].map((method) => {
-            const disabled = method === 'wallet' && wallet.balance < total;
+      <SectionCard style={styles.card}>
+        <View style={styles.paymentHeader}>
+          <Text style={styles.sectionTitle}>Payment method</Text>
+          <View style={styles.walletChip}>
+            <Ionicons name="wallet-outline" size={14} color={theme.colors.primaryDark} />
+            <Text style={styles.walletChipText}>{formatCurrency(wallet.balance)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.paymentList}>
+          {paymentMethods.map((method) => {
+            const disabled = method.key === 'wallet' && wallet.balance < total;
+            const active = paymentMethod === method.key;
+
             return (
-              <TouchableOpacity
-                key={method}
-                style={[styles.payCard, paymentMethod === method && styles.payCardActive, disabled && styles.payCardDisabled]}
-                onPress={() => setPaymentMethod(method)}
-                activeOpacity={0.75}
+              <Pressable
+                key={method.key}
+                style={[
+                  styles.paymentCard,
+                  active && styles.paymentCardActive,
+                  disabled && styles.paymentCardDisabled,
+                ]}
+                onPress={() => setPaymentMethod(method.key)}
                 disabled={disabled}
               >
-                <Text style={styles.payCardTitle}>
-                  {method === 'cod'
-                    ? '💵 Cash on Delivery'
-                    : method === 'razorpay'
-                      ? '💳 Pay Online'
-                      : `👛 Wallet\n₹${wallet.balance.toFixed(0)}`}
-                </Text>
-              </TouchableOpacity>
+                <View style={[styles.paymentIcon, active && styles.paymentIconActive]}>
+                  <Ionicons
+                    name={method.icon}
+                    size={18}
+                    color={active ? theme.colors.white : theme.colors.primary}
+                  />
+                </View>
+                <View style={styles.paymentCopy}>
+                  <Text style={styles.paymentTitle}>{method.title}</Text>
+                  <Text style={styles.paymentSubtitle}>{method.subtitle}</Text>
+                </View>
+                {active ? (
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
+                ) : null}
+              </Pressable>
             );
           })}
         </View>
+      </SectionCard>
 
-        <View style={styles.breakdown}>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Subtotal</Text>
-            <Text style={styles.breakdownValue}>{`₹${subtotal.toFixed(0)}`}</Text>
-          </View>
-          <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Delivery</Text>
-            <Text style={styles.breakdownValue}>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(0)}`}</Text>
-          </View>
-          <View style={[styles.breakdownRow, styles.breakdownTotal]}>
-            <Text style={styles.breakdownTotalLabel}>Total</Text>
-            <Text style={styles.breakdownTotalValue}>{`₹${total.toFixed(0)}`}</Text>
-          </View>
+      <SectionCard style={styles.card}>
+        <Text style={styles.sectionTitle}>Cost breakdown</Text>
+        <View style={styles.breakdownRow}>
+          <Text style={styles.breakdownLabel}>Subtotal</Text>
+          <Text style={styles.breakdownValue}>{formatCurrency(subtotal)}</Text>
         </View>
-
-        <PrimaryButton title="Place Order" onPress={handlePlaceOrder} loading={submitting} />
-      </View>
+        <View style={styles.breakdownRow}>
+          <Text style={styles.breakdownLabel}>Delivery fee</Text>
+          <Text style={styles.breakdownValue}>
+            {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
+          </Text>
+        </View>
+        <View style={[styles.breakdownRow, styles.breakdownTotal]}>
+          <Text style={styles.breakdownTotalLabel}>Grand total</Text>
+          <Text style={styles.breakdownTotalValue}>{formatCurrency(total)}</Text>
+        </View>
+        <PrimaryButton
+          title="Place order"
+          onPress={handlePlaceOrder}
+          loading={submitting}
+          icon="checkmark-done-outline"
+        />
+      </SectionCard>
     </ScrollView>
   );
 }
@@ -228,33 +302,21 @@ const styles = StyleSheet.create({
     gap: 14,
     backgroundColor: theme.colors.background,
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: theme.colors.text,
+  emptyWrap: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    padding: 16,
+    gap: 18,
   },
-  subheading: {
-    color: theme.colors.muted,
-    lineHeight: 22,
-  },
-  errorText: {
-    backgroundColor: theme.colors.dangerSoft,
-    color: theme.colors.danger,
-    padding: 12,
-    borderRadius: 12,
-    fontWeight: '600',
+  emptyState: {
+    flex: 1,
   },
   card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
     gap: 16,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '800',
     color: theme.colors.text,
   },
   summaryList: {
@@ -268,59 +330,97 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
+  summaryItemCopy: {
+    flex: 1,
+    gap: 4,
+  },
   summaryName: {
     fontWeight: '700',
     color: theme.colors.text,
   },
   summaryMeta: {
-    marginTop: 4,
     color: theme.colors.muted,
   },
   summaryPrice: {
-    fontWeight: '700',
-    color: theme.colors.primary,
+    fontWeight: '800',
+    color: theme.colors.primaryDark,
   },
   dateInput: {
-    minHeight: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
+    minHeight: 52,
+    borderRadius: theme.radius.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.surfaceAccent,
   },
   dateText: {
     color: theme.colors.text,
+    fontWeight: '600',
   },
-  paymentGrid: {
+  paymentHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  walletChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.primarySoft,
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  walletChipText: {
+    color: theme.colors.primaryDark,
+    fontWeight: '700',
+  },
+  paymentList: {
     gap: 10,
   },
-  payCard: {
-    flex: 1,
-    minHeight: 88,
-    borderRadius: 14,
-    borderWidth: 1.5,
+  paymentCard: {
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
     borderColor: theme.colors.border,
-    padding: 12,
-    justifyContent: 'center',
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: theme.colors.surface,
   },
-  payCardActive: {
+  paymentCardActive: {
     borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.surfaceSoft,
+    backgroundColor: theme.colors.primarySoft,
   },
-  payCardDisabled: {
+  paymentCardDisabled: {
     opacity: 0.55,
   },
-  payCardTitle: {
-    fontWeight: '700',
-    color: theme.colors.text,
-    lineHeight: 20,
+  paymentIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.colors.surfaceSoft,
   },
-  breakdown: {
-    gap: 10,
-    paddingTop: 6,
+  paymentIconActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  paymentCopy: {
+    flex: 1,
+    gap: 2,
+  },
+  paymentTitle: {
+    color: theme.colors.text,
+    fontWeight: '800',
+  },
+  paymentSubtitle: {
+    color: theme.colors.muted,
+    lineHeight: 19,
   },
   breakdownRow: {
     flexDirection: 'row',
@@ -331,8 +431,8 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
   },
   breakdownValue: {
-    fontWeight: '700',
     color: theme.colors.text,
+    fontWeight: '700',
   },
   breakdownTotal: {
     paddingTop: 10,
@@ -340,12 +440,12 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.border,
   },
   breakdownTotalLabel: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: theme.colors.text,
   },
   breakdownTotalValue: {
-    fontSize: 19,
+    fontSize: 20,
     fontWeight: '800',
     color: theme.colors.primary,
   },

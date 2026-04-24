@@ -1,63 +1,104 @@
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import EmptyState from '../components/EmptyState';
 import ProductTile from '../components/ProductTile';
+import ScreenHeader from '../components/ScreenHeader';
 import { theme } from '../constants/theme';
 import { useCart } from '../context/CartContext';
 
 export default function FavoritesScreen() {
-  const { favorites, favoriteIds, items, addItem, updateQty, toggleFavorite } = useCart();
+  const [refreshing, setRefreshing] = useState(false);
+  const { favorites, favoriteIds, items, addItem, updateQty, toggleFavorite, fetchFavorites } =
+    useCart();
 
-  const cartQtyFor = (productId) =>
-    items.find((item) => item.product?._id === productId)?.quantity || 0;
+  const handleRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      await fetchFavorites();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const cartQuantityMap = items.reduce((accumulator, item) => {
+    const productId = item.product?._id;
+
+    if (productId) {
+      accumulator[productId] = item.quantity;
+    }
+
+    return accumulator;
+  }, {});
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Favorites</Text>
-      <Text style={styles.subheading}>Keep your best produce picks ready for quick reordering.</Text>
-
-      {favorites.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyEmoji}>❤️</Text>
-          <Text style={styles.emptyTitle}>No favorites yet</Text>
-          <Text style={styles.emptyText}>Browse the catalogue to save products.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={favorites}
-          keyExtractor={(item) => item._id}
-          numColumns={2}
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <ProductTile
-              product={item}
-              isFavorite={favoriteIds.includes(item._id)}
-              cartQty={cartQtyFor(item._id)}
-              onToggleFavorite={async (product) => {
-                try {
-                  await toggleFavorite(product);
-                } catch (requestError) {
-                  Alert.alert('Unable to update favorite', requestError.message || 'Please try again.');
-                }
-              }}
-              onAddToCart={async (product) => {
-                try {
-                  await addItem(product._id, 1);
-                  Alert.alert('Added to cart', `${product.name} was added to your cart.`);
-                } catch (requestError) {
-                  Alert.alert('Unable to add item', requestError.message || 'Please try again.');
-                }
-              }}
-              onUpdateQty={async (productId, quantity) => {
-                try {
-                  await updateQty(productId, quantity);
-                } catch (requestError) {
-                  Alert.alert('Unable to update quantity', requestError.message || 'Please try again.');
-                }
-              }}
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => item._id}
+        numColumns={2}
+        columnWrapperStyle={styles.gridRow}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.headerWrap}>
+            <ScreenHeader
+              eyebrow="Favorites"
+              title="Save your fastest reorders"
+              subtitle="Keep top-moving products one tap away for the next cart build."
             />
-          )}
-        />
-      )}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <ProductTile
+            product={item}
+            isFavorite={favoriteIds.includes(item._id)}
+            cartQty={cartQuantityMap[item._id] || 0}
+            onToggleFavorite={async (product) => {
+              try {
+                await toggleFavorite(product);
+              } catch (requestError) {
+                Alert.alert(
+                  'Unable to update favorite',
+                  requestError.message || 'Please try again.'
+                );
+              }
+            }}
+            onAddToCart={async (product) => {
+              try {
+                await addItem(product._id, 1);
+                Alert.alert('Added to cart', `${product.name} was added to your cart.`);
+              } catch (requestError) {
+                Alert.alert('Unable to add item', requestError.message || 'Please try again.');
+              }
+            }}
+            onUpdateQty={async (productId, quantity) => {
+              try {
+                await updateQty(productId, quantity);
+              } catch (requestError) {
+                Alert.alert(
+                  'Unable to update quantity',
+                  requestError.message || 'Please try again.'
+                );
+              }
+            }}
+          />
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            icon="heart-outline"
+            title="No favorites yet"
+            description="Browse the catalogue and tap the heart icon on products you want to save."
+            style={styles.emptyState}
+          />
+        }
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.colors.primary}
+          />
+        }
+      />
     </View>
   );
 }
@@ -66,45 +107,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  headerWrap: {
     paddingTop: 16,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: theme.colors.text,
-    marginHorizontal: 16,
-  },
-  subheading: {
-    color: theme.colors.muted,
-    lineHeight: 22,
-    marginTop: 4,
-    marginHorizontal: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   listContent: {
-    paddingTop: 16,
     paddingBottom: 28,
   },
   gridRow: {
     paddingHorizontal: 10,
   },
   emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  emptyEmoji: {
-    fontSize: 56,
-  },
-  emptyTitle: {
-    marginTop: 16,
-    fontSize: 22,
-    fontWeight: '700',
-    color: theme.colors.text,
-  },
-  emptyText: {
-    marginTop: 8,
-    color: theme.colors.muted,
-    textAlign: 'center',
+    width: '100%',
+    marginTop: 80,
   },
 });

@@ -5,11 +5,11 @@ const categories = ['All', 'Vegetable', 'Fruit'];
 
 const getCategoryLabel = (category) => {
   if (category === 'Vegetable') {
-    return '\uD83E\uDD66 Vegetable';
+    return 'Vegetables';
   }
 
   if (category === 'Fruit') {
-    return '\uD83C\uDF53 Fruit';
+    return 'Fruits';
   }
 
   return 'All';
@@ -27,7 +27,7 @@ export default function CategoryTabs({ activeCategory, onChange }) {
           key={category}
           style={[styles.tab, activeCategory === category && styles.activeTab]}
           onPress={() => onChange(category)}
-          activeOpacity={0.75}
+          activeOpacity={0.85}
         >
           <Text style={[styles.label, activeCategory === category && styles.activeLabel]}>
             {getCategoryLabel(category)}
@@ -40,27 +40,27 @@ export default function CategoryTabs({ activeCategory, onChange }) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 2,
     gap: 10,
   },
   tab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: '#C8E6C9',
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    borderRadius: theme.radius.pill,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
   activeTab: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySoft,
     borderColor: theme.colors.primary,
   },
   label: {
     color: theme.colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 14,
   },
   activeLabel: {
-    color: '#ffffff',
+    color: theme.colors.primaryDark,
   },
 });

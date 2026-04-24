@@ -12,6 +12,7 @@ export default function GoogleAuthButton({
       style={[styles.button, disabled && styles.disabledButton]}
       onPress={onPress}
       disabled={disabled || loading}
+      activeOpacity={0.85}
     >
       <View style={styles.iconWrap}>
         <Text style={styles.iconText}>G</Text>
@@ -23,8 +24,8 @@ export default function GoogleAuthButton({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 48,
-    borderRadius: 12,
+    minHeight: 52,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface,
@@ -38,10 +39,10 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   iconWrap: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
     borderColor: theme.colors.border,
     alignItems: 'center',

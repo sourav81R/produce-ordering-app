@@ -15,8 +15,8 @@ const statusStyles = {
     color: theme.colors.delivered,
   },
   Cancelled: {
-    backgroundColor: theme.colors.dangerSoft,
-    color: theme.colors.danger,
+    backgroundColor: theme.colors.cancelledSoft,
+    color: theme.colors.cancelled,
   },
 };
 
@@ -28,6 +28,7 @@ export default function StatusBadge({ status }) {
 
   return (
     <View style={[styles.badge, { backgroundColor: stylesForStatus.backgroundColor }]}>
+      <View style={[styles.dot, { backgroundColor: stylesForStatus.color }]} />
       <Text style={[styles.label, { color: stylesForStatus.color }]}>{status}</Text>
     </View>
   );
@@ -36,13 +37,20 @@ export default function StatusBadge({ status }) {
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
+    borderRadius: theme.radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
   },
 });
-

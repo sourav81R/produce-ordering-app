@@ -11,6 +11,7 @@ import {
   signInWithPopup,
   signOut,
 } from 'firebase/auth';
+import { logger } from '../utils/logger';
 
 const defaultFirebaseConfig = {
   apiKey: 'AIzaSyBhOBrJgkyU0WfyqN9bBOQMLVMnmW5iTuo',
@@ -32,7 +33,7 @@ const parseFirebaseConfig = () => {
     const normalizedConfig = rawConfig.trim().replace(/^(['"])(.*)\1$/s, '$2');
     return JSON.parse(normalizedConfig);
   } catch (_error) {
-    console.warn('EXPO_PUBLIC_FIREBASE_CONFIG is not valid JSON. Falling back to default config.');
+    logger.warn('EXPO_PUBLIC_FIREBASE_CONFIG is not valid JSON. Falling back to default config.');
     return defaultFirebaseConfig;
   }
 };

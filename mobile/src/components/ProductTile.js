@@ -1,13 +1,31 @@
+import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { theme } from '../constants/theme';
+import QuantityStepper from './QuantityStepper';
+import { formatCurrency } from '../utils/format';
 
 const TAG_CONFIG = {
-  bestseller: { label: '⭐ Bestseller', backgroundColor: '#FFF3E0', color: '#E65100' },
-  organic: { label: '🌱 Organic', backgroundColor: '#E8F5E9', color: '#2E7D32' },
-  seasonal: { label: '🍂 Seasonal', backgroundColor: '#E3F2FD', color: '#1565C0' },
-  new: { label: '✨ New', backgroundColor: '#FCE4EC', color: '#880E4F' },
-  premium: { label: '💎 Premium', backgroundColor: '#EDE7F6', color: '#4527A0' },
+  bestseller: { label: 'Bestseller', backgroundColor: '#FFF3E0', color: '#C56711' },
+  organic: { label: 'Organic', backgroundColor: '#E8F5E9', color: '#2E7D32' },
+  seasonal: { label: 'Seasonal', backgroundColor: '#E7F0FD', color: '#245A9A' },
+  new: { label: 'New', backgroundColor: '#FCEFF3', color: '#A23662' },
+  premium: { label: 'Premium', backgroundColor: '#EFE8FF', color: '#6A49AA' },
 };
+
+const getCategoryMeta = (category) =>
+  category === 'Fruit'
+    ? {
+        icon: 'nutrition-outline',
+        label: 'Fruit',
+        backgroundColor: theme.colors.fruitSoft,
+        color: theme.colors.fruitText,
+      }
+    : {
+        icon: 'leaf-outline',
+        label: 'Vegetable',
+        backgroundColor: theme.colors.primarySoft,
+        color: theme.colors.primary,
+      };
 
 export default function ProductTile({
   product,
@@ -18,29 +36,50 @@ export default function ProductTile({
   onUpdateQty,
 }) {
   const tag = product.tag ? TAG_CONFIG[product.tag] : null;
+  const categoryMeta = getCategoryMeta(product.category);
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity onPress={() => onToggleFavorite(product)} style={styles.favBtn} activeOpacity={0.75}>
-        <Text style={styles.favText}>{isFavorite ? '❤️' : '🤍'}</Text>
+      <TouchableOpacity
+        onPress={() => onToggleFavorite(product)}
+        style={styles.favBtn}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={isFavorite ? 'heart' : 'heart-outline'}
+          size={18}
+          color={isFavorite ? theme.colors.danger : theme.colors.muted}
+        />
       </TouchableOpacity>
 
-      {tag ? (
-        <View style={[styles.tagChip, { backgroundColor: tag.backgroundColor }]}>
-          <Text style={[styles.tagText, { color: tag.color }]}>{tag.label}</Text>
+      <View style={styles.topRow}>
+        <View style={[styles.categoryChip, { backgroundColor: categoryMeta.backgroundColor }]}>
+          <Ionicons name={categoryMeta.icon} size={14} color={categoryMeta.color} />
+          <Text style={[styles.categoryChipText, { color: categoryMeta.color }]}>
+            {categoryMeta.label}
+          </Text>
         </View>
-      ) : null}
+        {tag ? (
+          <View style={[styles.tagChip, { backgroundColor: tag.backgroundColor }]}>
+            <Text style={[styles.tagText, { color: tag.color }]}>{tag.label}</Text>
+          </View>
+        ) : null}
+      </View>
 
       <View
         style={[
-          styles.emojiCircle,
+          styles.iconCircle,
           {
-            backgroundColor: `${product.color}22`,
-            borderColor: `${product.color}44`,
+            backgroundColor: `${product.color || theme.colors.primary}22`,
+            borderColor: `${product.color || theme.colors.primary}44`,
           },
         ]}
       >
-        <Text style={styles.emoji}>{product.emoji}</Text>
+        <Ionicons
+          name={categoryMeta.icon}
+          size={30}
+          color={product.color || categoryMeta.color}
+        />
       </View>
 
       <Text style={styles.productName}>{product.name}</Text>
@@ -49,32 +88,22 @@ export default function ProductTile({
       </Text>
 
       <View style={styles.priceRow}>
-        <Text style={styles.price}>{`₹${product.price}`}</Text>
+        <Text style={styles.price}>{formatCurrency(product.price)}</Text>
         <Text style={styles.unit}>/{product.unit}</Text>
       </View>
 
       {cartQty === 0 ? (
-        <TouchableOpacity style={styles.addBtn} onPress={() => onAddToCart(product)} activeOpacity={0.75}>
-          <Text style={styles.addBtnText}>+ Add</Text>
+        <TouchableOpacity style={styles.addBtn} onPress={() => onAddToCart(product)} activeOpacity={0.85}>
+          <Ionicons name="add-circle-outline" size={18} color={theme.colors.white} />
+          <Text style={styles.addBtnText}>Add to cart</Text>
         </TouchableOpacity>
       ) : (
-        <View style={styles.qtyRow}>
-          <TouchableOpacity
-            style={styles.qtyBtnLight}
-            onPress={() => onUpdateQty(product._id, cartQty - 1)}
-            activeOpacity={0.75}
-          >
-            <Text style={styles.qtyBtnLightText}>−</Text>
-          </TouchableOpacity>
-          <Text style={styles.qtyNum}>{cartQty}</Text>
-          <TouchableOpacity
-            style={styles.qtyBtnDark}
-            onPress={() => onUpdateQty(product._id, cartQty + 1)}
-            activeOpacity={0.75}
-          >
-            <Text style={styles.qtyBtnDarkText}>+</Text>
-          </TouchableOpacity>
-        </View>
+        <QuantityStepper
+          value={cartQty}
+          onDecrease={() => onUpdateQty(product._id, cartQty - 1)}
+          onIncrease={() => onUpdateQty(product._id, cartQty + 1)}
+          style={styles.qtyRow}
+        />
       )}
     </View>
   );
@@ -82,20 +111,16 @@ export default function ProductTile({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
     padding: 16,
     margin: 6,
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#E8F5E9',
-    shadowColor: '#2E7D32',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     position: 'relative',
-    overflow: 'hidden',
+    gap: 10,
+    ...theme.shadows.card,
   },
   favBtn: {
     position: 'absolute',
@@ -107,119 +132,86 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  favText: {
-    fontSize: 18,
+  topRow: {
+    gap: 8,
+    paddingRight: 38,
+  },
+  categoryChip: {
+    alignSelf: 'flex-start',
+    borderRadius: theme.radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  categoryChipText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   tagChip: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    borderRadius: 999,
+    alignSelf: 'flex-start',
+    borderRadius: theme.radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    zIndex: 1,
   },
   tagText: {
     fontSize: 10,
     fontWeight: '700',
   },
-  emojiCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    marginBottom: 12,
-    marginTop: 10,
+    alignSelf: 'flex-start',
     borderWidth: 2,
   },
-  emoji: {
-    fontSize: 36,
-  },
   productName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '800',
+    color: theme.colors.text,
   },
   productDesc: {
-    fontSize: 12,
-    color: '#777777',
-    lineHeight: 17,
-    marginBottom: 10,
+    fontSize: 13,
+    color: theme.colors.muted,
+    lineHeight: 19,
+    minHeight: 38,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 12,
+    gap: 4,
   },
   price: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '800',
-    color: '#2E7D32',
+    color: theme.colors.primaryDark,
   },
   unit: {
     fontSize: 12,
-    color: '#999999',
-    marginLeft: 2,
+    color: theme.colors.subtle,
   },
   addBtn: {
-    backgroundColor: '#FF6F00',
-    borderRadius: 10,
-    paddingVertical: 10,
+    backgroundColor: theme.colors.cta,
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   addBtnText: {
-    color: '#FFFFFF',
+    color: theme.colors.white,
     fontWeight: '700',
     fontSize: 14,
   },
   qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F1F8F2',
-    borderRadius: 12,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#D7EAD9',
-  },
-  qtyBtnLight: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D7EAD9',
-  },
-  qtyBtnLightText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: theme.colors.primary,
-  },
-  qtyBtnDark: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.primary,
-  },
-  qtyBtnDarkText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  qtyNum: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: theme.colors.primaryDark,
+    marginTop: 2,
   },
 });
