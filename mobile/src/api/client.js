@@ -5,9 +5,23 @@ const localBrowserFallbackBaseUrl = 'http://localhost:5000/api';
 const productionFallbackBaseUrl = 'https://produce-ordering-app.onrender.com/api';
 const configuredBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 
+const normalizeApiBaseUrl = (url) => {
+  if (!url) {
+    return url;
+  }
+
+  const trimmedUrl = url.replace(/\/+$/, '');
+
+  if (trimmedUrl.endsWith('/api')) {
+    return trimmedUrl;
+  }
+
+  return `${trimmedUrl}/api`;
+};
+
 const resolveFallbackBaseUrl = () => {
   if (configuredBaseUrl) {
-    return configuredBaseUrl;
+    return normalizeApiBaseUrl(configuredBaseUrl);
   }
 
   if (Platform.OS !== 'web') {
