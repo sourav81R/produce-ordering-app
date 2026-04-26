@@ -32,7 +32,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   eyebrow: {
-    color: theme.colors.primary,
+    alignSelf: 'flex-start',
+    color: theme.colors.primaryDark,
+    backgroundColor: theme.colors.primarySoft,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: theme.radius.pill,
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -40,13 +45,13 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: 34,
   },
   subtitle: {
     color: theme.colors.muted,
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 22,
   },
 });

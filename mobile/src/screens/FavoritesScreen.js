@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import EmptyState from '../components/EmptyState';
 import ProductTile from '../components/ProductTile';
 import ScreenHeader from '../components/ScreenHeader';
+import SectionCard from '../components/SectionCard';
+import TabSectionNav from '../components/TabSectionNav';
 import { theme } from '../constants/theme';
 import { useCart } from '../context/CartContext';
 
@@ -41,16 +44,31 @@ export default function FavoritesScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.headerWrap}>
-            <ScreenHeader
-              eyebrow="Favorites"
-              title="Save your fastest reorders"
-              subtitle="Keep top-moving products one tap away for the next cart build."
-            />
+            <LinearGradient colors={['#FFFFFF', '#FFF8DD']} style={styles.heroCard}>
+              <ScreenHeader
+                eyebrow="Favorites"
+                title="Save your fastest reorders"
+                subtitle="Keep top-moving products one tap away for the next cart build."
+              />
+
+              <SectionCard style={styles.miniStrip}>
+                <View style={styles.miniMetric}>
+                  <Text style={styles.miniValue}>{favorites.length}</Text>
+                  <Text style={styles.miniLabel}>Saved items</Text>
+                </View>
+                <View style={styles.miniMetric}>
+                  <Text style={styles.miniValue}>{Object.keys(cartQuantityMap).length}</Text>
+                  <Text style={styles.miniLabel}>Already in cart</Text>
+                </View>
+                </SectionCard>
+            </LinearGradient>
+            <TabSectionNav />
           </View>
         }
         renderItem={({ item }) => (
           <ProductTile
             product={item}
+            compact
             isFavorite={favoriteIds.includes(item._id)}
             cartQty={cartQuantityMap[item._id] || 0}
             onToggleFavorite={async (product) => {
@@ -66,7 +84,6 @@ export default function FavoritesScreen() {
             onAddToCart={async (product) => {
               try {
                 await addItem(product._id, 1);
-                Alert.alert('Added to cart', `${product.name} was added to your cart.`);
               } catch (requestError) {
                 Alert.alert('Unable to add item', requestError.message || 'Please try again.');
               }
@@ -113,14 +130,43 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
+  heroCard: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 16,
+    ...theme.shadows.card,
+  },
+  miniStrip: {
+    flexDirection: 'row',
+    gap: 10,
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+  },
+  miniMetric: {
+    flex: 1,
+    gap: 4,
+  },
+  miniValue: {
+    color: theme.colors.text,
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  miniLabel: {
+    color: theme.colors.muted,
+    fontSize: 12,
+    fontWeight: '700',
+  },
   listContent: {
-    paddingBottom: 28,
+    paddingBottom: 110,
   },
   gridRow: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
   },
   emptyState: {
     width: '100%',
-    marginTop: 80,
+    marginHorizontal: 16,
+    marginTop: 24,
   },
 });

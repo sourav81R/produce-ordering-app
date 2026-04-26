@@ -1,17 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import EmptyState from '../components/EmptyState';
 import PrimaryButton from '../components/PrimaryButton';
+import ProductThumbnail from '../components/ProductThumbnail';
 import QuantityStepper from '../components/QuantityStepper';
 import ScreenHeader from '../components/ScreenHeader';
 import SectionCard from '../components/SectionCard';
+import TabSectionNav from '../components/TabSectionNav';
 import { theme } from '../constants/theme';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/format';
-
-const getCategoryIcon = (category) =>
-  category === 'Fruit' ? 'nutrition-outline' : 'leaf-outline';
 
 export default function CartScreen() {
   const navigation = useNavigation();
@@ -44,20 +44,20 @@ export default function CartScreen() {
 
   if (items.length === 0) {
     return (
-      <View style={styles.container}>
-        <View style={styles.content}>
+      <View style={styles.emptyWrap}>
+        <LinearGradient colors={['#FFFFFF', '#FFF8DD']} style={styles.emptyHero}>
           <ScreenHeader
             eyebrow="Cart"
             title="Your basket is ready when you are"
-            subtitle="Add fresh produce from the catalogue to continue."
+            subtitle="Add fresh produce from the catalogue and your pricing summary will build itself here."
           />
-          <EmptyState
-            icon="cart-outline"
-            title="Your cart is empty"
-            description="Once you add products, pricing and checkout details will appear here."
-            style={styles.emptyState}
-          />
-        </View>
+        </LinearGradient>
+        <EmptyState
+          icon="cart-outline"
+          title="Your cart is empty"
+          description="Once you add products, pricing and checkout details will appear here."
+          style={styles.emptyState}
+        />
       </View>
     );
   }
@@ -70,54 +70,46 @@ export default function CartScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.headerSection}>
-            <ScreenHeader
-              eyebrow="Cart"
-              title={`Review ${count} cart items`}
-              subtitle="Adjust quantities before moving into checkout."
-              right={
-                <Pressable onPress={handleClear} style={styles.clearButton}>
-                  <Text style={styles.clearButtonText}>Clear all</Text>
-                </Pressable>
-              }
-            />
+            <LinearGradient colors={['#FFFFFF', '#FFF7D6']} style={styles.heroCard}>
+              <ScreenHeader
+                eyebrow="Cart"
+                title={`Review ${count} cart items`}
+                subtitle="Adjust quantities, double-check pricing, and move into checkout when ready."
+                right={
+                  <Pressable onPress={handleClear} style={styles.clearButton}>
+                    <Text style={styles.clearButtonText}>Clear all</Text>
+                  </Pressable>
+                }
+              />
 
-            <SectionCard style={styles.summaryStrip}>
-              <View style={styles.summaryMetric}>
-                <Text style={styles.summaryMetricLabel}>Subtotal</Text>
-                <Text style={styles.summaryMetricValue}>{formatCurrency(subtotal)}</Text>
+              <View style={styles.summaryStrip}>
+                <View style={styles.summaryMetric}>
+                  <Text style={styles.summaryMetricLabel}>Subtotal</Text>
+                  <Text style={styles.summaryMetricValue}>{formatCurrency(subtotal)}</Text>
+                </View>
+                <View style={styles.summaryMetric}>
+                  <Text style={styles.summaryMetricLabel}>Delivery</Text>
+                  <Text style={styles.summaryMetricValue}>
+                    {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
+                  </Text>
+                </View>
+                <View style={styles.summaryMetric}>
+                  <Text style={styles.summaryMetricLabel}>Total</Text>
+                  <Text style={styles.summaryMetricValue}>{formatCurrency(total)}</Text>
+                </View>
               </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryMetric}>
-                <Text style={styles.summaryMetricLabel}>Delivery</Text>
-                <Text style={styles.summaryMetricValue}>
-                  {deliveryFee === 0 ? 'Free' : formatCurrency(deliveryFee)}
-                </Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryMetric}>
-                <Text style={styles.summaryMetricLabel}>Total</Text>
-                <Text style={styles.summaryMetricValue}>{formatCurrency(total)}</Text>
-              </View>
-            </SectionCard>
+            </LinearGradient>
+            <TabSectionNav />
           </View>
         }
         renderItem={({ item }) => (
           <SectionCard style={styles.itemCard}>
-            <View
-              style={[
-                styles.itemIcon,
-                {
-                  backgroundColor: `${item.product?.color || theme.colors.primary}22`,
-                  borderColor: `${item.product?.color || theme.colors.primary}44`,
-                },
-              ]}
-            >
-              <Ionicons
-                name={getCategoryIcon(item.product?.category)}
-                size={24}
-                color={item.product?.color || theme.colors.primary}
-              />
-            </View>
+            <ProductThumbnail
+              product={item.product}
+              style={styles.thumbnailFrame}
+              imageStyle={styles.thumbnailImage}
+              resizeMode="contain"
+            />
 
             <View style={styles.itemBody}>
               <View style={styles.itemTopRow}>
@@ -125,6 +117,9 @@ export default function CartScreen() {
                   <Text style={styles.itemName}>{item.product?.name}</Text>
                   <Text style={styles.itemMeta}>
                     {`${formatCurrency(item.product?.price)} / ${item.product?.unit}`}
+                  </Text>
+                  <Text style={styles.itemMetaSecondary}>
+                    {item.product?.packSize || item.product?.deliveryWindow || 'Fresh stock'}
                   </Text>
                 </View>
                 <Pressable
@@ -136,9 +131,12 @@ export default function CartScreen() {
               </View>
 
               <View style={styles.itemBottomRow}>
-                <Text style={styles.lineTotal}>
-                  {formatCurrency(item.quantity * (item.product?.price || 0))}
-                </Text>
+                <View>
+                  <Text style={styles.lineTotalLabel}>Line total</Text>
+                  <Text style={styles.lineTotal}>
+                    {formatCurrency(item.quantity * (item.product?.price || 0))}
+                  </Text>
+                </View>
                 <QuantityStepper
                   value={item.quantity}
                   onDecrease={() => handleQuantityChange(item.product?._id, item.quantity - 1)}
@@ -183,10 +181,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  content: {
+  emptyWrap: {
     flex: 1,
+    backgroundColor: theme.colors.background,
     padding: 16,
     gap: 18,
+  },
+  emptyHero: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.card,
+  },
+  emptyState: {
+    flex: 1,
   },
   headerSection: {
     paddingTop: 16,
@@ -194,12 +203,20 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 110,
     gap: 12,
+  },
+  heroCard: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 18,
+    ...theme.shadows.card,
   },
   clearButton: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: theme.radius.pill,
     backgroundColor: theme.colors.surface,
     borderWidth: 1,
@@ -211,13 +228,16 @@ const styles = StyleSheet.create({
   },
   summaryStrip: {
     flexDirection: 'row',
-    alignItems: 'stretch',
-    justifyContent: 'space-between',
     gap: 10,
-    paddingVertical: 14,
   },
   summaryMetric: {
     flex: 1,
+    borderRadius: 18,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     gap: 4,
   },
   summaryMetricLabel: {
@@ -231,27 +251,24 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
-  summaryDivider: {
-    width: 1,
-    backgroundColor: theme.colors.border,
-  },
   itemCard: {
     marginHorizontal: 16,
     flexDirection: 'row',
     gap: 14,
-    alignItems: 'center',
   },
-  itemIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
+  thumbnailFrame: {
+    width: 92,
+    height: 92,
+    borderRadius: 20,
+    backgroundColor: '#F4F2E9',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
   },
   itemBody: {
     flex: 1,
-    gap: 12,
+    gap: 14,
   },
   itemTopRow: {
     flexDirection: 'row',
@@ -269,15 +286,22 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   itemMeta: {
+    color: theme.colors.primaryDark,
+    fontWeight: '700',
+  },
+  itemMetaSecondary: {
     color: theme.colors.muted,
+    fontSize: 12,
   },
   removeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.dangerSoft,
+    borderWidth: 1,
+    borderColor: '#F3D0CC',
   },
   itemBottomRow: {
     flexDirection: 'row',
@@ -285,7 +309,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  lineTotalLabel: {
+    color: theme.colors.subtle,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
   lineTotal: {
+    marginTop: 4,
     fontSize: 18,
     fontWeight: '800',
     color: theme.colors.primaryDark,
@@ -324,9 +355,6 @@ const styles = StyleSheet.create({
   breakdownTotalValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: theme.colors.primary,
-  },
-  emptyState: {
-    flex: 1,
+    color: theme.colors.primaryDark,
   },
 });

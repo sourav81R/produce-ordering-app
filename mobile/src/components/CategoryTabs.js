@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
     ...theme.shadows.soft,
   },
   activeTab: {
-    backgroundColor: '#F2FBF6',
-    borderColor: '#9ED9B5',
+    backgroundColor: theme.colors.accentSoft,
+    borderColor: '#F2D85D',
   },
   iconWrap: {
     width: 34,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceAccent,
   },
   activeIconWrap: {
-    backgroundColor: theme.colors.primarySoft,
+    backgroundColor: '#FFF0A6',
   },
   copy: {
     gap: 2,
@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeCount: {
-    color: theme.colors.primary,
+    color: theme.colors.primaryDark,
   },
 });

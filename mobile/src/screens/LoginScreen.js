@@ -52,7 +52,7 @@ export default function LoginScreen({ onSwitchMode }) {
       style={styles.screen}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <LinearGradient colors={['#012D1D', '#1B4332', '#3F6653']} style={styles.hero}>
+        <LinearGradient colors={['#0F6B37', '#1F8F4D', '#8CCF9D']} style={styles.hero}>
           <View style={styles.heroBadge}>
             <Ionicons name="business-outline" size={16} color={theme.colors.white} />
             <Text style={styles.heroBadgeText}>AgriOrder B2B</Text>
@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.xl,
     padding: theme.spacing.xl,
     gap: 12,
+    ...theme.shadows.card,
   },
   heroBadge: {
     alignSelf: 'flex-start',
@@ -189,6 +190,7 @@ const styles = StyleSheet.create({
   },
   card: {
     gap: 16,
+    backgroundColor: 'rgba(255,255,255,0.98)',
   },
   heading: {
     fontSize: 28,

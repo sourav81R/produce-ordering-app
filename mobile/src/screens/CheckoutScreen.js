@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { apiClient, getApiErrorMessage } from '../api/client';
 import EmptyState from '../components/EmptyState';
 import InlineMessage from '../components/InlineMessage';
@@ -178,11 +179,13 @@ export default function CheckoutScreen() {
   if (!items.length) {
     return (
       <View style={styles.emptyWrap}>
-        <ScreenHeader
-          eyebrow="Checkout"
-          title="Nothing to check out yet"
-          subtitle="Return to the catalogue, add items to cart, and come back here to place your order."
-        />
+        <LinearGradient colors={['#FFFFFF', '#FFF8DD']} style={styles.emptyHero}>
+          <ScreenHeader
+            eyebrow="Checkout"
+            title="Nothing to check out yet"
+            subtitle="Return to the catalogue, add items to cart, and come back here to place your order."
+          />
+        </LinearGradient>
         <EmptyState
           icon="bag-handle-outline"
           title="Your cart is empty"
@@ -195,11 +198,28 @@ export default function CheckoutScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <ScreenHeader
-        eyebrow="Checkout"
-        title="Confirm delivery and payment"
-        subtitle="Review line items, choose a delivery date, and place the order."
-      />
+      <LinearGradient colors={['#FFFFFF', '#FFF8DD']} style={styles.heroCard}>
+        <ScreenHeader
+          eyebrow="Checkout"
+          title="Confirm delivery and payment"
+          subtitle="Review line items, choose a delivery date, and place the order."
+        />
+
+        <View style={styles.heroMetrics}>
+          <View style={styles.heroMetric}>
+            <Text style={styles.heroMetricLabel}>Items</Text>
+            <Text style={styles.heroMetricValue}>{items.length}</Text>
+          </View>
+          <View style={styles.heroMetric}>
+            <Text style={styles.heroMetricLabel}>Wallet</Text>
+            <Text style={styles.heroMetricValue}>{formatCurrency(wallet.balance)}</Text>
+          </View>
+          <View style={styles.heroMetric}>
+            <Text style={styles.heroMetricLabel}>Total</Text>
+            <Text style={styles.heroMetricValue}>{formatCurrency(total)}</Text>
+          </View>
+        </View>
+      </LinearGradient>
 
       <InlineMessage message={error} tone="danger" />
 
@@ -229,7 +249,10 @@ export default function CheckoutScreen() {
           onPress={() => setShowDatePicker((current) => !current)}
         >
           <Ionicons name="calendar-outline" size={18} color={theme.colors.primary} />
-          <Text style={styles.dateText}>{formatDisplayDate(deliveryDate)}</Text>
+          <View style={styles.dateCopy}>
+            <Text style={styles.dateText}>{formatDisplayDate(deliveryDate)}</Text>
+            <Text style={styles.dateHint}>Tap to change your delivery slot.</Text>
+          </View>
         </Pressable>
         {showDatePicker ? (
           <DateTimePicker
@@ -331,6 +354,7 @@ export default function CheckoutScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    paddingBottom: 110,
     gap: 14,
     backgroundColor: theme.colors.background,
   },
@@ -340,8 +364,48 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 18,
   },
+  emptyHero: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    ...theme.shadows.card,
+  },
   emptyState: {
     flex: 1,
+  },
+  heroCard: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 18,
+    ...theme.shadows.card,
+  },
+  heroMetrics: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  heroMetric: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.84)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    gap: 4,
+  },
+  heroMetricLabel: {
+    color: theme.colors.subtle,
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+  },
+  heroMetricValue: {
+    color: theme.colors.text,
+    fontSize: 17,
+    fontWeight: '800',
   },
   card: {
     gap: 16,
@@ -378,19 +442,27 @@ const styles = StyleSheet.create({
     color: theme.colors.primaryDark,
   },
   dateInput: {
-    minHeight: 52,
+    minHeight: 60,
     borderRadius: theme.radius.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surfaceAccent,
+    backgroundColor: '#FFFBEA',
+  },
+  dateCopy: {
+    flex: 1,
   },
   dateText: {
     color: theme.colors.text,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  dateHint: {
+    color: theme.colors.muted,
+    fontSize: 12,
+    marginTop: 4,
   },
   paymentHeader: {
     flexDirection: 'row',
@@ -425,8 +497,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
   paymentCardActive: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primarySoft,
+    borderColor: '#F2D85D',
+    backgroundColor: theme.colors.accentSoft,
   },
   paymentCardDisabled: {
     opacity: 0.55,
@@ -479,6 +551,6 @@ const styles = StyleSheet.create({
   breakdownTotalValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: theme.colors.primary,
+    color: theme.colors.primaryDark,
   },
 });

@@ -27,7 +27,15 @@ export default function StatusBadge({ status }) {
   };
 
   return (
-    <View style={[styles.badge, { backgroundColor: stylesForStatus.backgroundColor }]}>
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor: stylesForStatus.backgroundColor,
+          borderColor: `${stylesForStatus.color}22`,
+        },
+      ]}
+    >
       <View style={[styles.dot, { backgroundColor: stylesForStatus.color }]} />
       <Text style={[styles.label, { color: stylesForStatus.color }]}>{status}</Text>
     </View>
@@ -38,6 +46,7 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     borderRadius: theme.radius.pill,
+    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 8,
     flexDirection: 'row',

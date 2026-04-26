@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { theme } from '../constants/theme';
 
@@ -14,8 +15,25 @@ export default function PrimaryButton({
 }) {
   const isSecondary = variant === 'secondary';
   const isGhost = variant === 'ghost';
+  const isPrimary = !isSecondary && !isGhost;
   const isDisabled = loading || disabled;
   const iconColor = isSecondary || isGhost ? theme.colors.text : theme.colors.white;
+  const content = loading ? (
+    <ActivityIndicator color={iconColor} />
+  ) : (
+    <View style={styles.content}>
+      {icon ? <Ionicons name={icon} size={18} color={iconColor} /> : null}
+      <Text
+        style={[
+          styles.label,
+          isSecondary || isGhost ? styles.secondaryLabel : styles.primaryLabel,
+          labelStyle,
+        ]}
+      >
+        {title}
+      </Text>
+    </View>
+  );
 
   return (
     <TouchableOpacity
@@ -29,21 +47,12 @@ export default function PrimaryButton({
       disabled={isDisabled}
       activeOpacity={0.85}
     >
-      {loading ? (
-        <ActivityIndicator color={iconColor} />
+      {isPrimary ? (
+        <LinearGradient colors={['#1F8F4D', '#0F6B37']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fill}>
+          {content}
+        </LinearGradient>
       ) : (
-        <View style={styles.content}>
-          {icon ? <Ionicons name={icon} size={18} color={iconColor} /> : null}
-          <Text
-            style={[
-              styles.label,
-              isSecondary || isGhost ? styles.secondaryLabel : styles.primaryLabel,
-              labelStyle,
-            ]}
-          >
-            {title}
-          </Text>
-        </View>
+        <View style={[styles.fill, isSecondary ? styles.secondaryFill : styles.ghostFill]}>{content}</View>
       )}
     </TouchableOpacity>
   );
@@ -53,20 +62,28 @@ const styles = StyleSheet.create({
   button: {
     minHeight: 52,
     borderRadius: theme.radius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 18,
+    overflow: 'hidden',
   },
   primaryButton: {
-    backgroundColor: theme.colors.primary,
     ...theme.shadows.soft,
   },
   secondaryButton: {
-    backgroundColor: theme.colors.surface,
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   ghostButton: {
+    backgroundColor: 'transparent',
+  },
+  fill: {
+    minHeight: 52,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryFill: {
+    backgroundColor: '#FFFBE7',
+  },
+  ghostFill: {
     backgroundColor: 'transparent',
   },
   disabledButton: {

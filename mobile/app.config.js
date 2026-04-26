@@ -7,6 +7,12 @@ const easProjectId =
   process.env.EXPO_PUBLIC_EAS_PROJECT_ID || process.env.EAS_PROJECT_ID || '';
 const updatesUrl = easProjectId ? `https://u.expo.dev/${easProjectId}` : undefined;
 
+if (!easProjectId) {
+  console.warn(
+    'Expo Updates is disabled because EXPO_PUBLIC_EAS_PROJECT_ID is not set. Set it before building release APKs that should auto-update.'
+  );
+}
+
 module.exports = () => ({
   expo: {
     name: 'GoVigi Produce',

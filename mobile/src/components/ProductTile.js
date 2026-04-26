@@ -40,10 +40,13 @@ export default function ProductTile({
   const tag = product.tag ? TAG_CONFIG[product.tag] : null;
   const categoryMeta = getCategoryMeta(product.category);
   const deliveryLabel = product.deliveryWindow || 'Next delivery';
-  const sourceLabel = [product.supplier, product.origin].filter(Boolean).join(' • ');
+  const sourceLabel = [product.supplier, product.origin].filter(Boolean).join(' | ');
   const packLabel = product.packSize || `1 ${product.unit} pack`;
   const stockLabel =
     typeof product.stockLevel === 'number' ? `${product.stockLevel}+ in stock` : 'Freshly available';
+  const compareAtPrice = Math.ceil(
+    (Number(product.price) || 0) * (product.tag === 'premium' ? 1.12 : 1.18)
+  );
 
   return (
     <View style={[styles.card, compact && styles.compactCard]}>
@@ -114,9 +117,12 @@ export default function ProductTile({
         </View>
 
         <View style={styles.priceRow}>
-          <View style={styles.priceCopy}>
-            <Text style={styles.price}>{formatCurrency(product.price)}</Text>
-            <Text style={styles.unit}>/{product.unit}</Text>
+          <View style={styles.pricePrimary}>
+            <View style={styles.priceCopy}>
+              <Text style={styles.price}>{formatCurrency(product.price)}</Text>
+              <Text style={styles.unit}>/{product.unit}</Text>
+            </View>
+            <Text style={styles.comparePrice}>{formatCurrency(compareAtPrice)}</Text>
           </View>
           <View style={styles.stockPill}>
             <Text style={styles.stockText}>{stockLabel}</Text>
@@ -174,10 +180,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.94)',
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...theme.shadows.soft,
   },
   mediaWrap: {
     borderRadius: 22,
-    backgroundColor: '#FFFCF7',
+    backgroundColor: '#FBFAF4',
     padding: 12,
     gap: 12,
   },
@@ -217,12 +224,13 @@ const styles = StyleSheet.create({
   imageFrame: {
     width: '100%',
     borderRadius: 18,
+    overflow: 'hidden',
   },
   productImage: {
     width: '100%',
     height: 176,
     borderRadius: 18,
-    backgroundColor: '#F7F3EB',
+    backgroundColor: '#F3F1E8',
   },
   compactProductImage: {
     height: 154,
@@ -239,7 +247,7 @@ const styles = StyleSheet.create({
   },
   deliveryPill: {
     alignSelf: 'flex-start',
-    backgroundColor: theme.colors.surfaceAccent,
+    backgroundColor: '#F3F5EF',
     borderRadius: theme.radius.pill,
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -289,6 +297,9 @@ const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
   },
+  pricePrimary: {
+    gap: 4,
+  },
   priceCopy: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -298,6 +309,12 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontWeight: '800',
     color: theme.colors.primaryDark,
+  },
+  comparePrice: {
+    fontSize: 12,
+    color: theme.colors.subtle,
+    fontWeight: '700',
+    textDecorationLine: 'line-through',
   },
   unit: {
     fontSize: 12,
@@ -315,13 +332,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   addBtn: {
-    backgroundColor: theme.colors.cta,
+    backgroundColor: theme.colors.primaryDark,
     borderRadius: 16,
     paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
+    ...theme.shadows.soft,
   },
   addBtnText: {
     color: theme.colors.white,

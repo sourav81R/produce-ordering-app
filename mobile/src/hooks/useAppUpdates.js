@@ -32,17 +32,23 @@ export function useAppUpdates() {
       await Updates.fetchUpdateAsync();
       setStatus('ready');
       setIsReadyToApply(true);
-      setIsPromptVisible(true);
+      setIsPromptVisible(false);
+
+      // Apply OTA updates immediately after download so release APKs feel self-updating.
+      setStatus('applying');
+      await Updates.reloadAsync();
       return { isAvailable: true };
     } catch (requestError) {
       logger.error('Expo update check failed', requestError);
-      setStatus('error');
+      setStatus(isReadyToApply ? 'ready' : 'error');
       setError(
-        'Unable to download the latest update right now. The current version will continue to run.'
+        isReadyToApply
+          ? 'The latest update was downloaded but could not be applied automatically. Please reopen the app.'
+          : 'Unable to download the latest update right now. The current version will continue to run.'
       );
       return { isAvailable: false, error: requestError };
     }
-  }, []);
+  }, [isReadyToApply]);
 
   const applyUpdate = useCallback(async () => {
     if (!shouldHandleUpdates() || !isReadyToApply) {

@@ -3,8 +3,7 @@ import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import UpdatePrompt from './src/components/UpdatePrompt';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import CartScreen from './src/screens/CartScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
@@ -74,6 +73,7 @@ function MainTabs() {
         tabBarInactiveTintColor: theme.colors.subtle,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
+        tabBarItemStyle: styles.tabBarItem,
         tabBarBadge: route.name === 'Cart' && count > 0 ? count : undefined,
         tabBarBadgeStyle: styles.tabBarBadge,
         tabBarIcon: ({ color, size, focused }) => {
@@ -119,10 +119,6 @@ function AppShell() {
     isDownloading,
     isApplying,
     isReadyToApply,
-    isPromptVisible,
-    applyUpdate,
-    dismissUpdate,
-    reopenUpdatePrompt,
   } = useAppUpdates();
 
   if (authLoading) {
@@ -139,10 +135,10 @@ function AppShell() {
               name="Home"
               component={MainTabs}
               options={{
-                title: 'GoVigi Produce',
+                title: 'GoVigi Fresh',
                 headerLeft: () => (
                   <View style={styles.brandMark}>
-                    <Ionicons name="leaf" size={18} color={theme.colors.primary} />
+                    <Ionicons name="leaf" size={18} color={theme.colors.white} />
                   </View>
                 ),
                 headerRight: () => (
@@ -160,25 +156,23 @@ function AppShell() {
         )}
       </NavigationContainer>
 
-      {updatesEnabled && (isChecking || isDownloading || updateError || (isReadyToApply && !isPromptVisible)) ? (
-        <Pressable
-          disabled={!(isReadyToApply && !isPromptVisible)}
-          onPress={reopenUpdatePrompt}
-          style={styles.updateBanner}
-        >
+      {updatesEnabled && (isChecking || isDownloading || isApplying || updateError || isReadyToApply) ? (
+        <View style={styles.updateBanner}>
           <Ionicons
             name={
               updateError
                 ? 'alert-circle-outline'
-                : isReadyToApply && !isPromptVisible
-                  ? 'checkmark-circle-outline'
-                  : 'cloud-download-outline'
+                : isApplying
+                  ? 'sync-outline'
+                  : isReadyToApply
+                    ? 'checkmark-circle-outline'
+                    : 'cloud-download-outline'
             }
             size={16}
             color={
               updateError
                 ? theme.colors.danger
-                : isReadyToApply && !isPromptVisible
+                : isReadyToApply || isApplying
                   ? theme.colors.success
                   : theme.colors.primaryDark
             }
@@ -191,21 +185,16 @@ function AppShell() {
           >
             {updateError
               ? updateError
-              : isReadyToApply && !isPromptVisible
-                ? 'A new update is ready. Tap here to install it now.'
-              : isChecking
-                ? 'Checking for updates...'
-                : 'Downloading update in the background...'}
+              : isApplying
+                ? 'Applying the latest update now...'
+                : isReadyToApply
+                  ? 'Latest update downloaded. Restarting into the new version...'
+                  : isChecking
+                    ? 'Checking for updates...'
+                    : 'Downloading update in the background...'}
           </Text>
-        </Pressable>
+        </View>
       ) : null}
-
-      <UpdatePrompt
-        visible={updatesEnabled && isReadyToApply && isPromptVisible}
-        loading={isApplying}
-        onApply={applyUpdate}
-        onLater={dismissUpdate}
-      />
     </View>
   );
 }
@@ -249,35 +238,47 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   brandMark: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: theme.colors.primarySoft,
-    marginRight: 10,
-  },
-  headerIconButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.surfaceMuted,
+    backgroundColor: theme.colors.primaryDark,
+    marginRight: 10,
+  },
+  headerIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF8D6',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   tabBar: {
-    backgroundColor: theme.colors.surface,
-    borderTopColor: theme.colors.border,
-    height: 72,
-    paddingTop: 8,
-    paddingBottom: 10,
+    display: Platform.OS === 'web' ? 'none' : 'flex',
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 10,
+    backgroundColor: 'rgba(255,255,255,0.98)',
+    borderTopColor: 'transparent',
+    height: 78,
+    paddingTop: 10,
+    paddingBottom: 12,
+    borderRadius: 24,
+    ...theme.shadows.card,
+  },
+  tabBarItem: {
+    borderRadius: 18,
   },
   tabBarLabel: {
     fontSize: 12,
     fontWeight: '700',
   },
   tabBarBadge: {
-    backgroundColor: theme.colors.cta,
+    backgroundColor: theme.colors.primaryDark,
     color: theme.colors.white,
     fontWeight: '700',
   },

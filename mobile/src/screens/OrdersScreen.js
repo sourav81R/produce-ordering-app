@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { apiClient, getApiErrorMessage } from '../api/client';
 import EmptyState from '../components/EmptyState';
@@ -10,6 +11,7 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenHeader from '../components/ScreenHeader';
 import SectionCard from '../components/SectionCard';
 import StatusBadge from '../components/StatusBadge';
+import TabSectionNav from '../components/TabSectionNav';
 import { theme } from '../constants/theme';
 import { formatDisplayDate } from '../utils/date';
 import { formatCurrency } from '../utils/format';
@@ -92,41 +94,44 @@ export default function OrdersScreen() {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={styles.headerWrap}>
-            <ScreenHeader
-              eyebrow="Order operations"
-              title="Track every wholesale order"
-              subtitle="See delivery status, payment details, and order history in one place."
-            />
+            <LinearGradient colors={['#FFFFFF', '#FFF8DD']} style={styles.heroCard}>
+              <ScreenHeader
+                eyebrow="Order operations"
+                title="Track every wholesale order"
+                subtitle="See delivery status, payment details, and order history in one place."
+              />
 
-            <View style={styles.metricsRow}>
-              <SectionCard style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Total</Text>
-                <Text style={styles.metricValue}>{metrics.total}</Text>
-              </SectionCard>
-              <SectionCard style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Open</Text>
-                <Text style={styles.metricValue}>{metrics.open}</Text>
-              </SectionCard>
-              <SectionCard style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Delivered</Text>
-                <Text style={styles.metricValue}>{metrics.delivered}</Text>
-              </SectionCard>
-            </View>
+              <View style={styles.metricsRow}>
+                <SectionCard style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Total</Text>
+                  <Text style={styles.metricValue}>{metrics.total}</Text>
+                </SectionCard>
+                <SectionCard style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Open</Text>
+                  <Text style={styles.metricValue}>{metrics.open}</Text>
+                </SectionCard>
+                <SectionCard style={styles.metricCard}>
+                  <Text style={styles.metricLabel}>Delivered</Text>
+                  <Text style={styles.metricValue}>{metrics.delivered}</Text>
+                </SectionCard>
+              </View>
 
-            {activeOrder ? (
-              <SectionCard style={styles.highlightCard}>
-                <View style={styles.highlightCopy}>
-                  <Text style={styles.highlightTag}>Active delivery</Text>
-                  <Text style={styles.highlightTitle}>{`Order #${activeOrder._id
-                    .slice(-8)
-                    .toUpperCase()}`}</Text>
-                  <Text style={styles.highlightSubtitle}>
-                    {`Expected ${formatDisplayDate(activeOrder.deliveryDate)} • Payment ${activeOrder.paymentStatus}`}
-                  </Text>
-                </View>
-                <StatusBadge status={getDisplayStatus(activeOrder)} />
-              </SectionCard>
-            ) : null}
+              {activeOrder ? (
+                <SectionCard style={styles.highlightCard}>
+                  <View style={styles.highlightCopy}>
+                    <Text style={styles.highlightTag}>Active delivery</Text>
+                    <Text style={styles.highlightTitle}>
+                      {`Order #${activeOrder._id.slice(-8).toUpperCase()}`}
+                    </Text>
+                    <Text style={styles.highlightSubtitle}>
+                      {`Expected ${formatDisplayDate(activeOrder.deliveryDate)} | Payment ${activeOrder.paymentStatus}`}
+                    </Text>
+                  </View>
+                  <StatusBadge status={getDisplayStatus(activeOrder)} />
+                </SectionCard>
+              ) : null}
+            </LinearGradient>
+            <TabSectionNav />
 
             <InlineMessage message={error} tone="danger" />
           </View>
@@ -172,7 +177,7 @@ export default function OrdersScreen() {
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Payment</Text>
                 <Text style={styles.infoValue}>
-                  {`${item.paymentMethod.toUpperCase()} • ${item.paymentStatus}`}
+                  {`${item.paymentMethod.toUpperCase()} | ${item.paymentStatus}`}
                 </Text>
               </View>
               <View style={styles.infoRow}>
@@ -221,7 +226,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 110,
     gap: 12,
   },
   headerWrap: {
@@ -229,6 +234,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
     gap: 16,
+  },
+  heroCard: {
+    borderRadius: 28,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    gap: 16,
+    ...theme.shadows.card,
   },
   metricsRow: {
     flexDirection: 'row',
@@ -238,6 +251,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.84)',
   },
   highlightCard: {
     gap: 12,
@@ -329,7 +343,7 @@ const styles = StyleSheet.create({
     color: theme.colors.muted,
   },
   infoGrid: {
-    gap: 8,
+    gap: 10,
     paddingTop: 2,
   },
   infoRow: {
@@ -346,6 +360,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   emptyState: {
-    marginTop: 60,
+    marginHorizontal: 16,
+    marginTop: 24,
   },
 });

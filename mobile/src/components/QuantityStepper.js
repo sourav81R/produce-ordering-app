@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     padding: 5,
-    borderRadius: 16,
-    backgroundColor: '#F5F8F6',
+    borderRadius: 14,
+    backgroundColor: '#F8FAF6',
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   button: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: theme.colors.white,
@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   buttonPrimary: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primaryDark,
+    borderColor: theme.colors.primaryDark,
   },
   value: {
     minWidth: 28,

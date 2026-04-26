@@ -8,7 +8,7 @@ export default function SectionCard({ children, style }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: theme.colors.border,
     padding: theme.spacing.lg,

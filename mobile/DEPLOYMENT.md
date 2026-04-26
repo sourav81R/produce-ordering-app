@@ -127,6 +127,12 @@ Push an update to production users:
 npx eas update --channel production --message "Improve order tracking"
 ```
 
+Important:
+
+- An already-built APK cannot be converted into an OTA-enabled app after installation.
+- Set `EXPO_PUBLIC_EAS_PROJECT_ID` before building the APK, then rebuild and reinstall once.
+- After that, future JS/UI changes can ship through `eas update` as long as the runtime version matches.
+
 ## 6. Versioning rules
 
 - Bump `APP_VERSION` when you ship a new native release.
@@ -140,9 +146,7 @@ The app now:
 
 - checks for updates at startup
 - downloads available updates in the background
-- shows a "New update available" prompt
-- lets the user tap "Update Now"
-- reloads into the new update
+- automatically reloads into the new update after download
 - falls back to the currently running version if the update fails
 
 ## 8. Local verification
