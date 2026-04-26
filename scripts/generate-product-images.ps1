@@ -66,7 +66,7 @@ $images = @(
   @{
     slug = 'pomegranate'
     fileName = 'pomegranate.jpg'
-    source = 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Pomegranate.jpg/1024px-Pomegranate.jpg'
+    source = 'https://images.pexels.com/photos/7033816/pexels-photo-7033816.jpeg?cs=srgb&dl=pexels-tima-miroshnichenko-7033816.jpg&fm=jpg'
   },
   @{
     slug = 'watermelon'

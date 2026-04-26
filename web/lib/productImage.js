@@ -23,14 +23,16 @@ const KNOWN_PRODUCT_SLUGS = new Set([
 ]);
 
 const REMOTE_PRODUCT_IMAGE_URLS = {
-  pomegranate:
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Pomegranate.jpg/1024px-Pomegranate.jpg',
   watermelon:
     'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Sliced_Watermelon.jpg/1280px-Sliced_Watermelon.jpg',
   'pink-guava':
     'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Guava_fruit.jpg/1280px-Guava_fruit.jpg',
   'dragon-fruit':
     'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/A_dragon_fruit.jpg/1280px-A_dragon_fruit.jpg',
+};
+
+const PRODUCT_SLUG_ALIASES = {
+  guava: 'pink-guava',
 };
 
 const UNRELIABLE_PEXELS_PATTERN =
@@ -44,11 +46,16 @@ export const slugifyProductName = (name = '') =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
+export const normalizeProductSlug = (name = '') => {
+  const slug = slugifyProductName(name);
+  return PRODUCT_SLUG_ALIASES[slug] || slug;
+};
+
 export const getCategoryFallbackImage = (product) =>
   PRODUCT_CATEGORY_FALLBACKS[product?.category] || PRODUCT_CATEGORY_FALLBACKS.Vegetable;
 
 export const getLocalProductImage = (product = {}) => {
-  const slug = slugifyProductName(product.name);
+  const slug = normalizeProductSlug(product.name);
 
   if (!KNOWN_PRODUCT_SLUGS.has(slug)) {
     return '';
@@ -66,6 +73,11 @@ export const getProductFallbackImage = (product) =>
 
 export const getProductImageSource = (product) => {
   const candidate = (product?.imageUrl || product?.image || '').trim();
+  const slug = normalizeProductSlug(product?.name);
+
+  if (REMOTE_PRODUCT_IMAGE_URLS[slug]) {
+    return REMOTE_PRODUCT_IMAGE_URLS[slug];
+  }
 
   if (!candidate || UNRELIABLE_PEXELS_PATTERN.test(candidate)) {
     return getProductFallbackImage(product);
