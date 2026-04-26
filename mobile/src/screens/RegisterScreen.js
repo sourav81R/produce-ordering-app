@@ -11,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import GoogleSignInButton from '../components/GoogleSignInButton';
 import InlineMessage from '../components/InlineMessage';
 import PrimaryButton from '../components/PrimaryButton';
 import SectionCard from '../components/SectionCard';
@@ -111,14 +110,6 @@ export default function RegisterScreen({ onSwitchMode }) {
             />
           </View>
 
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or continue with</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <GoogleSignInButton onError={setError} />
-
           <View style={styles.helperRow}>
             <Text style={styles.helperText}>Already registered?</Text>
             <Pressable
@@ -215,21 +206,5 @@ const styles = StyleSheet.create({
   linkText: {
     color: theme.colors.primary,
     fontWeight: '700',
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: theme.colors.border,
-  },
-  dividerText: {
-    color: theme.colors.subtle,
-    fontWeight: '600',
-    fontSize: 12,
-    textTransform: 'uppercase',
   },
 });
