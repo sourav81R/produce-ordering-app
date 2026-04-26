@@ -118,25 +118,33 @@ export default function ProductListScreen() {
 
   const renderHeader = () => (
     <View style={styles.headerContent}>
-      <LinearGradient colors={['#244F24', '#6A963F']} style={styles.heroCard}>
-        <Text style={styles.heroEyebrow}>Retail catalogue</Text>
-        <Text style={styles.heroTitle}>Fresh stock for your next order run</Text>
-        <Text style={styles.heroSubtitle}>
-          Browse vegetables and fruits, save favorites, and add items to cart in seconds.
-        </Text>
+      <LinearGradient
+        colors={['#064E3B', '#059669', '#10B981']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.heroCard}
+      >
+        <View style={styles.heroTopRow}>
+          <View style={styles.statusBadge}>
+            <View style={styles.statusDot} />
+            <Text style={styles.statusText}>Open for Orders</Text>
+          </View>
+          <Ionicons name="leaf" size={20} color="rgba(255,255,255,0.6)" />
+        </View>
+
+        <View style={styles.heroMain}>
+          <Text style={styles.heroTitle}>Fresh Harvest,{'\n'}Direct to You</Text>
+          <Text style={styles.heroSubtitle}>
+            Premium quality produce sourced daily from local organic farms.
+          </Text>
+        </View>
 
         <View style={styles.statRow}>
           <View style={styles.statPill}>
-            <Ionicons name="layers-outline" size={14} color={theme.colors.white} />
-            <Text style={styles.statText}>{counts.all} items</Text>
+            <Text style={styles.statText}>{counts.vegetables} Veggies</Text>
           </View>
           <View style={styles.statPill}>
-            <Ionicons name="leaf-outline" size={14} color={theme.colors.white} />
-            <Text style={styles.statText}>{counts.vegetables} vegetables</Text>
-          </View>
-          <View style={styles.statPill}>
-            <Ionicons name="nutrition-outline" size={14} color={theme.colors.white} />
-            <Text style={styles.statText}>{counts.fruits} fruits</Text>
+            <Text style={styles.statText}>{counts.fruits} Fruits</Text>
           </View>
         </View>
       </LinearGradient>
@@ -215,41 +223,65 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     borderRadius: theme.radius.xl,
-    padding: theme.spacing.xl,
-    gap: 10,
+    padding: 24,
+    gap: 20,
+    elevation: 8,
+    shadowColor: '#064E3B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  heroEyebrow: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.pill,
+    gap: 6,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#34D399',
+  },
+  statusText: {
+    color: theme.colors.white,
+    fontSize: 11,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
+  },
+  heroMain: {
+    gap: 8,
   },
   heroTitle: {
     color: theme.colors.white,
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
-    lineHeight: 34,
+    lineHeight: 38,
   },
   heroSubtitle: {
-    color: 'rgba(255,255,255,0.88)',
-    fontSize: 15,
-    lineHeight: 22,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 16,
+    lineHeight: 24,
   },
   statRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 6,
+    gap: 8,
   },
   statPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
     borderRadius: theme.radius.pill,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   statText: {
     color: theme.colors.white,

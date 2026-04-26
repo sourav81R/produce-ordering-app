@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import PageHeader from '../components/PageHeader';
+import ProductImage from '../components/ProductImage';
 import { useCart } from '../context/CartContext';
 import { useRequireAuth } from '../lib/auth';
 
@@ -16,90 +16,132 @@ export default function CartPage() {
   return (
     <Layout>
       <Head>
-        <title>Cart | GoVigi Produce Ordering App</title>
+        <title>Your Basket | AgriOrder Fresh</title>
       </Head>
 
       <div className="page-stack">
-        <PageHeader
-          title="Your Cart"
-          description="Adjust quantities, review pricing, and continue to checkout when you're ready."
-        />
+        <section className="procurement-page-head blink-cart-page-head">
+          <div>
+            <p className="auth-section-kicker">Your cart</p>
+            <h1>Fresh picks ready for checkout.</h1>
+            <p>Update quantities, remove items, and continue with delivery scheduling.</p>
+          </div>
+
+          <div className="procurement-head-actions">
+            <Link className="button secondary small" href="/products">
+              Continue shopping
+            </Link>
+            {items.length ? (
+              <button className="button ghost small" type="button" onClick={clearCart}>
+                Clear basket
+              </button>
+            ) : null}
+          </div>
+        </section>
 
         {items.length === 0 ? (
-          <div className="card empty-state">
-            <div style={{ fontSize: 54 }}>🌿</div>
-            <h3>Your cart is empty</h3>
-            <p className="muted-text">Browse the catalogue to add fresh produce to your basket.</p>
+          <div className="catalog-empty-state cart-empty-state">
+            <div className="catalog-empty-state-mark">AG</div>
+            <h3>Your basket is empty</h3>
+            <p>Browse the catalog to add fruits and vegetables with quick delivery slots.</p>
             <Link className="button primary" href="/products">
-              Browse Catalogue
+              Browse products
             </Link>
           </div>
         ) : (
-          <div className="cart-layout produce-cart-layout">
-            <section className="cart-items produce-cart-items">
+          <div className="procurement-cart-layout blink-cart-layout">
+            <section className="procurement-cart-items">
               {items.map((item) => (
-                <article className="cart-item produce-cart-item" key={item.product?._id}>
-                  <div
-                    className="produce-cart-emoji"
-                    style={{
-                      backgroundColor: `${item.product?.color || '#4CAF50'}22`,
-                      borderColor: `${item.product?.color || '#4CAF50'}44`,
-                    }}
-                  >
-                    {item.product?.emoji || '🌿'}
-                  </div>
+                <article className="procurement-cart-card blink-cart-card" key={item.product?._id}>
+                  <ProductImage
+                    product={item.product}
+                    className="blink-cart-image"
+                  />
 
-                  <div className="cart-item-body">
-                    <h3>{item.product?.name}</h3>
-                    <p className="muted-text">
-                      ₹{item.product?.price} / {item.product?.unit}
-                    </p>
+                  <div className="procurement-cart-copy">
+                    <div className="procurement-cart-copy-head">
+                      <div>
+                        <p className="procurement-cart-supplier">
+                          {item.product?.supplier || 'Fresh partner'}
+                        </p>
+                        <h3>{item.product?.name}</h3>
+                        <p className="procurement-cart-origin">
+                          {item.product?.packSize || `${item.product?.unit} pack`}
+                        </p>
+                      </div>
 
-                    <div className="catalog-qty-stepper">
-                      <button type="button" onClick={() => updateQty(item.product?._id, item.quantity - 1)}>
-                        −
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button type="button" onClick={() => updateQty(item.product?._id, item.quantity + 1)}>
-                        +
+                      <div className="procurement-cart-price">
+                        <strong>{`Rs ${((item.product?.price || 0) * item.quantity).toFixed(0)}`}</strong>
+                        <span>{`Rs ${item.product?.price || 0} / ${item.product?.unit}`}</span>
+                      </div>
+                    </div>
+
+                    <div className="procurement-cart-meta">
+                      <span>{item.product?.deliveryWindow || 'Fast delivery'}</span>
+                      <span>{item.product?.origin || 'Fresh source'}</span>
+                      <span>{`MOQ ${item.product?.minOrderQty || 1}`}</span>
+                    </div>
+
+                    <div className="procurement-cart-actions">
+                      <div className="blink-qty-stepper">
+                        <button type="button" onClick={() => updateQty(item.product?._id, item.quantity - 1)}>
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button type="button" onClick={() => updateQty(item.product?._id, item.quantity + 1)}>
+                          +
+                        </button>
+                      </div>
+
+                      <button
+                        className="text-link"
+                        type="button"
+                        onClick={() => removeItem(item.product?._id)}
+                      >
+                        Remove
                       </button>
                     </div>
-                  </div>
-
-                  <div className="produce-cart-side">
-                    <strong>₹{((item.product?.price || 0) * item.quantity).toFixed(0)}</strong>
-                    <button className="text-link" type="button" onClick={() => removeItem(item.product?._id)}>
-                      Remove
-                    </button>
                   </div>
                 </article>
               ))}
             </section>
 
-            <aside className="summary-card">
-              <h2>Summary</h2>
-              <div className="summary-breakdown">
+            <aside className="procurement-summary-card blink-summary-card">
+              <div className="procurement-summary-head">
                 <div>
-                  <span>Subtotal</span>
-                  <strong>₹{subtotal.toFixed(0)}</strong>
+                  <p className="catalog-side-kicker">Price details</p>
+                  <h2>Bill summary</h2>
+                </div>
+                <span>{`${items.length} item${items.length === 1 ? '' : 's'}`}</span>
+              </div>
+
+              <div className="procurement-summary-breakdown">
+                <div>
+                  <span>Item total</span>
+                  <strong>{`Rs ${subtotal.toFixed(0)}`}</strong>
                 </div>
                 <div>
-                  <span>Delivery</span>
-                  <strong>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(0)}`}</strong>
+                  <span>Delivery charge</span>
+                  <strong>{deliveryFee === 0 ? 'FREE' : `Rs ${deliveryFee.toFixed(0)}`}</strong>
                 </div>
                 <div className="summary-total">
-                  <span>Total</span>
-                  <strong>₹{total.toFixed(0)}</strong>
+                  <span>To pay</span>
+                  <strong>{`Rs ${total.toFixed(0)}`}</strong>
                 </div>
+              </div>
+
+              <div className="procurement-summary-note">
+                <strong>Delivery promise</strong>
+                <p>Fresh items are packed after confirmation to keep them crisp and shelf-ready.</p>
               </div>
 
               <div className="checkout-actions">
                 <Link className="button primary" href="/checkout">
-                  Proceed to Checkout →
+                  Proceed to checkout
                 </Link>
-                <button className="button ghost" type="button" onClick={clearCart}>
-                  Clear Cart
-                </button>
+                <Link className="button secondary" href="/favorites">
+                  Review saved items
+                </Link>
               </div>
             </aside>
           </div>

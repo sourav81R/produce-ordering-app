@@ -109,6 +109,8 @@ npm run start
 
 Use Expo to launch the app. For native Razorpay checkout on Android/iOS, make sure the native dependency is installed and the build includes `react-native-razorpay`.
 
+For EAS cloud builds, authenticate with Expo first using `eas login`, or set `EXPO_TOKEN` for CI/non-interactive environments.
+
 ## Environment Variables
 
 ### Backend: `backend/.env`
@@ -116,6 +118,7 @@ Use Expo to launch the app. For native Razorpay checkout on Android/iOS, make su
 ```env
 PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/produce-ordering-app
+MONGO_DNS_SERVERS=1.1.1.1,8.8.8.8
 JWT_SECRET=replace_with_a_secure_random_string_64_chars
 RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
@@ -141,6 +144,8 @@ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
 ```
 
 For physical devices, replace `localhost` with your machine’s LAN IP.
+
+If MongoDB Atlas SRV lookups fail because Node is using a loopback DNS resolver such as `127.0.0.1`, the backend will retry with the DNS servers listed in `MONGO_DNS_SERVERS`.
 
 ## Razorpay Test Setup
 

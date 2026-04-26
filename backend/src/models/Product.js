@@ -27,9 +27,58 @@ const productSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    imageUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    imageAlt: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    supplier: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    origin: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    packSize: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    stockLevel: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    minOrderQty: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    deliveryWindow: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    qualityGrade: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    isOrganic: {
+      type: Boolean,
+      default: false,
+    },
     emoji: {
       type: String,
-      default: '🌿',
+      default: 'PR',
       trim: true,
     },
     color: {

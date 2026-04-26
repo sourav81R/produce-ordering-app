@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import PageHeader from '../components/PageHeader';
 import ProductCard from '../components/ProductCard';
 import { useCart } from '../context/CartContext';
 import { useRequireAuth } from '../lib/auth';
@@ -17,22 +16,34 @@ export default function FavoritesPage() {
   return (
     <Layout>
       <Head>
-        <title>Favorites | GoVigi Produce Ordering App</title>
+        <title>Saved Products | AgriOrder B2B</title>
       </Head>
 
       <div className="page-stack">
-        <PageHeader
-          title="Favorites"
-          description="Keep your most-used fruits and vegetables handy for faster repeat orders."
-        />
+        <section className="procurement-page-head">
+          <div>
+            <p className="auth-section-kicker">Saved sourcing list</p>
+            <h1>Keep repeat-buy products within easy reach.</h1>
+            <p>
+              Save high-rotation produce, premium lines, and seasonal picks so your buying team can
+              reorder faster.
+            </p>
+          </div>
+
+          <div className="procurement-head-actions">
+            <Link className="button secondary small" href="/products">
+              Back to catalog
+            </Link>
+          </div>
+        </section>
 
         {favorites.length === 0 ? (
-          <div className="card empty-state">
-            <div style={{ fontSize: 54 }}>❤️</div>
-            <h3>No favorites yet</h3>
-            <p className="muted-text">Browse the catalogue to save products for later.</p>
+          <div className="catalog-empty-state cart-empty-state">
+            <div className="catalog-empty-state-mark">AG</div>
+            <h3>No saved products yet</h3>
+            <p>Use the Save action on catalog cards to build a quick shortlist for repeat orders.</p>
             <Link className="button primary" href="/products">
-              Browse Catalogue
+              Explore products
             </Link>
           </div>
         ) : (

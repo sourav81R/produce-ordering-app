@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { useCart } from '../context/CartContext';
+import ProductImage from './ProductImage';
 
 export default function CartDrawer() {
   const { items, count, subtotal, drawerOpen, setDrawer, updateQty, removeItem } = useCart();
@@ -17,50 +18,45 @@ export default function CartDrawer() {
         onClick={() => setDrawer(false)}
       />
 
-      <aside className="cart-drawer">
+      <aside className="cart-drawer blink-drawer">
         <div className="cart-drawer-header">
           <div>
-            <h2>{`Your Cart (${count})`}</h2>
-            <p>Review your produce before checkout.</p>
+            <p className="catalog-side-kicker">Current basket</p>
+            <h2>{`${count} item${count === 1 ? '' : 's'} selected`}</h2>
+            <p>Review products before checkout.</p>
           </div>
           <button className="cart-icon-button" type="button" onClick={() => setDrawer(false)}>
-            ✕
+            x
           </button>
         </div>
 
         {items.length === 0 ? (
           <div className="cart-drawer-empty">
-            <div className="cart-drawer-empty-emoji">🌿</div>
-            <h3>Your cart is empty</h3>
-            <p>Browse the catalogue to add fresh produce.</p>
+            <div className="cart-drawer-empty-emoji">AG</div>
+            <h3>Your basket is empty</h3>
+            <p>Add products from the catalog to begin your order.</p>
             <Link className="button primary" href="/products" onClick={() => setDrawer(false)}>
-              Browse Catalogue
+              Browse products
             </Link>
           </div>
         ) : (
           <>
             <div className="cart-drawer-items">
               {items.map((item) => (
-                <article className="cart-drawer-item" key={item.product?._id}>
-                  <div
-                    className="cart-drawer-emoji"
-                    style={{
-                      backgroundColor: `${item.product?.color || '#4CAF50'}22`,
-                      borderColor: `${item.product?.color || '#4CAF50'}44`,
-                    }}
-                  >
-                    {item.product?.emoji || '🌿'}
-                  </div>
+                <article className="cart-drawer-item blink-drawer-item" key={item.product?._id}>
+                  <ProductImage
+                    product={item.product}
+                    className="blink-drawer-image"
+                  />
 
                   <div className="cart-drawer-item-body">
                     <h3>{item.product?.name}</h3>
-                    <p>
-                      {item.quantity} {item.product?.unit} × ₹{item.product?.price}
-                    </p>
+                    <p>{item.product?.packSize || `${item.product?.unit} pack`}</p>
+                    <p>{`${item.quantity} x Rs ${item.product?.price || 0}`}</p>
 
                     <div className="cart-drawer-qty">
                       <button type="button" onClick={() => updateQty(item.product?._id, item.quantity - 1)}>
-                        −
+                        -
                       </button>
                       <span>{item.quantity}</span>
                       <button type="button" onClick={() => updateQty(item.product?._id, item.quantity + 1)}>
@@ -71,13 +67,13 @@ export default function CartDrawer() {
                         type="button"
                         onClick={() => removeItem(item.product?._id)}
                       >
-                        🗑️
+                        Remove
                       </button>
                     </div>
                   </div>
 
                   <strong className="cart-drawer-line-total">
-                    ₹{(item.quantity * (item.product?.price || 0)).toFixed(0)}
+                    {`Rs ${(item.quantity * (item.product?.price || 0)).toFixed(0)}`}
                   </strong>
                 </article>
               ))}
@@ -86,16 +82,16 @@ export default function CartDrawer() {
             <div className="cart-drawer-summary">
               <div>
                 <span>Subtotal</span>
-                <strong>₹{subtotal.toFixed(0)}</strong>
+                <strong>{`Rs ${subtotal.toFixed(0)}`}</strong>
               </div>
             </div>
 
             <div className="cart-drawer-actions">
               <Link className="button primary" href="/checkout" onClick={() => setDrawer(false)}>
-                Proceed to Checkout →
+                Continue to checkout
               </Link>
-              <Link className="button secondary" href="/products" onClick={() => setDrawer(false)}>
-                Continue Shopping
+              <Link className="button secondary" href="/cart" onClick={() => setDrawer(false)}>
+                Open full cart
               </Link>
             </div>
           </>

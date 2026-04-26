@@ -20,9 +20,9 @@ import { theme } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 
 const highlights = [
-  'Order vegetables and fruits in bulk',
+  'Order produce in wholesale quantities',
   'Track delivery status from one screen',
-  'Save favorites for faster reorders',
+  'Save favorites and reorder faster',
 ];
 
 export default function LoginScreen({ onSwitchMode }) {
@@ -52,14 +52,14 @@ export default function LoginScreen({ onSwitchMode }) {
       style={styles.screen}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <LinearGradient colors={['#305D2E', '#6F9B43']} style={styles.hero}>
+        <LinearGradient colors={['#012D1D', '#1B4332', '#3F6653']} style={styles.hero}>
           <View style={styles.heroBadge}>
-            <Ionicons name="leaf" size={16} color={theme.colors.white} />
-            <Text style={styles.heroBadgeText}>GoVigi</Text>
+            <Ionicons name="business-outline" size={16} color={theme.colors.white} />
+            <Text style={styles.heroBadgeText}>AgriOrder B2B</Text>
           </View>
-          <Text style={styles.heroTitle}>Fresh produce ordering for modern retailers.</Text>
+          <Text style={styles.heroTitle}>Fresh produce ordering for modern retail teams.</Text>
           <Text style={styles.heroSubtitle}>
-            Sign in to browse stock, place bulk orders, and keep every delivery on track.
+            Sign in to browse stock, place bulk orders, and keep every delivery moving on schedule.
           </Text>
 
           <View style={styles.heroList}>
@@ -74,7 +74,7 @@ export default function LoginScreen({ onSwitchMode }) {
 
         <SectionCard style={styles.card}>
           <Text style={styles.heading}>Welcome back</Text>
-          <Text style={styles.subheading}>Use your account to continue into the retailer app.</Text>
+          <Text style={styles.subheading}>Use your retailer account to continue into the dashboard.</Text>
 
           <InlineMessage message={error} tone="danger" style={styles.message} />
 

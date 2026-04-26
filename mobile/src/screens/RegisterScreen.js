@@ -60,21 +60,21 @@ export default function RegisterScreen({ onSwitchMode }) {
       style={styles.screen}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <LinearGradient colors={['#4F6A24', '#B0871A']} style={styles.hero}>
+        <LinearGradient colors={['#1B4332', '#3F6653', '#86AF99']} style={styles.hero}>
           <View style={styles.heroBadge}>
             <Ionicons name="storefront-outline" size={16} color={theme.colors.white} />
             <Text style={styles.heroBadgeText}>Retailer onboarding</Text>
           </View>
-          <Text style={styles.heroTitle}>Create your produce ordering workspace.</Text>
+          <Text style={styles.heroTitle}>Create your wholesale produce workspace.</Text>
           <Text style={styles.heroSubtitle}>
-            Register once to manage stock planning, orders, favorites, and delivery updates.
+            Register once to manage stock planning, orders, favorites, and delivery updates across web and mobile.
           </Text>
         </LinearGradient>
 
         <SectionCard style={styles.card}>
           <Text style={styles.heading}>Create account</Text>
           <Text style={styles.subheading}>
-            Keep it simple. We only need your name, email, and password to get started.
+            Keep it simple. We only need your name, business email, and password to get started.
           </Text>
 
           <InlineMessage message={error} tone="danger" style={styles.message} />

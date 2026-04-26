@@ -15,7 +15,7 @@ module.exports = () => ({
     version: appVersion,
     orientation: 'portrait',
     userInterfaceStyle: 'light',
-    newArchEnabled: true,
+    newArchEnabled: false,
     icon: './assets/icon.png',
     splash: {
       image: './assets/splash.png',

@@ -1,29 +1,30 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { getStoredToken } from '../lib/auth';
+import ProductImage from './ProductImage';
 
 const TAG_CONFIG = {
   bestseller: {
     className: 'bestseller',
-    label: '\u2B50 Bestseller',
+    label: 'Bestseller',
   },
   organic: {
     className: 'organic',
-    label: '\uD83C\uDF31 Organic',
+    label: 'Organic',
   },
   seasonal: {
     className: 'seasonal',
-    label: '\uD83C\uDF42 Seasonal',
+    label: 'Seasonal',
   },
   new: {
     className: 'new',
-    label: '\u2728 New',
+    label: 'New',
   },
   premium: {
     className: 'premium',
-    label: '\uD83D\uDC8E Premium',
+    label: 'Premium',
   },
 };
 
@@ -35,6 +36,11 @@ export default function ProductCard({ product }) {
   const cartItem = items.find((item) => item.product?._id === product._id);
   const quantity = cartItem?.quantity || 0;
   const isFavorite = favoriteIds.includes(product._id);
+
+  const compareAtPrice = useMemo(() => {
+    const uplift = product.tag === 'premium' ? 1.12 : 1.18;
+    return Math.ceil(product.price * uplift);
+  }, [product.price, product.tag]);
 
   useEffect(() => {
     if (!feedback) {
@@ -62,7 +68,7 @@ export default function ProductCard({ product }) {
     try {
       await toggleFavorite(product);
     } catch (_error) {
-      setFeedback('Unable to update favorite');
+      setFeedback('Unable to save');
     }
   };
 
@@ -72,48 +78,63 @@ export default function ProductCard({ product }) {
     }
 
     try {
-      await addItem(product._id, 1);
-      setFeedback('Added!');
+      await addItem(product._id, product.minOrderQty || 1);
+      setFeedback('Added');
     } catch (_error) {
       setFeedback('Unable to add');
     }
   };
 
   return (
-    <article className="catalog-product-card">
-      <button className="catalog-favorite-btn" type="button" onClick={handleFavorite} aria-label="Toggle favorite">
-        {isFavorite ? '❤️' : '🤍'}
-      </button>
-      {tag ? <span className={`tag-chip ${tag.className}`}>{tag.label}</span> : null}
-
-      <div
-        className="catalog-emoji-circle"
-        style={{
-          backgroundColor: `${product.color}22`,
-          borderColor: `${product.color}44`,
-        }}
-      >
-        <span>{product.emoji}</span>
+    <article className="blink-product-card">
+      <div className="blink-product-media">
+        {tag ? <span className={`blink-card-badge ${tag.className}`}>{tag.label}</span> : null}
+        <button
+          className={`blink-wishlist-btn ${isFavorite ? 'is-active' : ''}`}
+          type="button"
+          onClick={handleFavorite}
+          aria-label="Toggle favorite"
+        >
+          {isFavorite ? 'Saved' : 'Save'}
+        </button>
+        <ProductImage
+          product={product}
+          className="blink-product-image"
+        />
       </div>
 
-      <h3 className="catalog-product-name">{product.name}</h3>
-      <p className="catalog-product-desc">{product.description}</p>
-
-      <div className="catalog-price-row">
-        <p className="catalog-price">
-          {'\u20B9'}
-          {product.price}
-          <span className="catalog-price-unit"> / {product.unit}</span>
+      <div className="blink-product-copy">
+        <span className="blink-delivery-pill">{product.deliveryWindow || 'Fast delivery'}</span>
+        <h3>{product.name}</h3>
+        <p className="blink-product-pack">{product.packSize || `1 ${product.unit}`}</p>
+        <p className="blink-product-meta">
+          {product.supplier || 'Fresh partner'} • {product.origin || 'Local market'}
         </p>
+      </div>
 
+      <div className="blink-product-pricing">
+        <div>
+          <strong>{`Rs ${product.price}`}</strong>
+          <span>{`/ ${product.unit}`}</span>
+        </div>
+        <small>{`MRP Rs ${compareAtPrice}`}</small>
+      </div>
+
+      <div className="blink-product-footer">
+        <span className="blink-stock-copy">{`${product.stockLevel || 0}+ in stock`}</span>
         {quantity === 0 ? (
-          <button className="catalog-add-btn" type="button" onClick={handleAdd}>
-            {feedback === 'Added!' ? 'Added!' : '+ Add to Cart'}
+          <button className="blink-add-button" type="button" onClick={handleAdd}>
+            {feedback === 'Added' ? 'Added' : 'ADD'}
           </button>
         ) : (
-          <div className="catalog-qty-stepper">
-            <button type="button" onClick={() => (quantity === 1 ? removeItem(product._id) : updateQty(product._id, quantity - 1))}>
-              −
+          <div className="blink-qty-stepper">
+            <button
+              type="button"
+              onClick={() =>
+                quantity === 1 ? removeItem(product._id) : updateQty(product._id, quantity - 1)
+              }
+            >
+              -
             </button>
             <span>{quantity}</span>
             <button type="button" onClick={() => updateQty(product._id, quantity + 1)}>
@@ -123,9 +144,9 @@ export default function ProductCard({ product }) {
         )}
       </div>
 
-      <div className="catalog-card-footer-link">
-        <Link href={`/order/new?product=${product._id}`}>Order directly instead</Link>
-      </div>
+      <Link className="blink-direct-link" href={`/order/new?product=${product._id}`}>
+        View full details
+      </Link>
     </article>
   );
 }

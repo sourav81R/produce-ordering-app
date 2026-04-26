@@ -1,7 +1,6 @@
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../../components/Layout';
-import PageHeader from '../../components/PageHeader';
 import StatusBadge from '../../components/StatusBadge';
 import { apiClient } from '../../lib/api';
 import { useRequireAuth } from '../../lib/auth';
@@ -38,17 +37,27 @@ export default function MyOrdersPage() {
     }
   }, [checkingAuth]);
 
+  const metrics = useMemo(
+    () => ({
+      total: orders.length,
+      active: orders.filter((order) => !order.cancelledAt && order.status !== 'Delivered').length,
+      delivered: orders.filter((order) => order.status === 'Delivered').length,
+    }),
+    [orders]
+  );
+
+  const activeOrder = useMemo(
+    () => orders.find((order) => !order.cancelledAt && order.status !== 'Delivered') || null,
+    [orders]
+  );
+
   const handleCancel = async (orderId) => {
     try {
       const response = await apiClient.post(`/orders/${orderId}/cancel`, {
-        reason: 'Cancelled from the GoVigi web portal',
+        reason: 'Cancelled from the AgriOrder B2B web portal',
       });
       setOrders((current) =>
-        current.map((order) =>
-          order._id === orderId
-            ? { ...order, ...response.data?.order }
-            : order
-        )
+        current.map((order) => (order._id === orderId ? { ...order, ...response.data?.order } : order))
       );
     } catch (requestError) {
       setError(getRequestErrorMessage(requestError, 'Unable to cancel this order.'));
@@ -62,47 +71,88 @@ export default function MyOrdersPage() {
   return (
     <Layout>
       <Head>
-        <title>My Orders | GoVigi Produce Ordering App</title>
+        <title>Order Tracking | AgriOrder B2B</title>
       </Head>
 
-      <div className="page-stack">
-        <PageHeader
-          title="My Orders"
-          description="Track each produce order from placement through confirmation and delivery."
-        />
+      <div className="orders-dashboard">
+        <div className="orders-dashboard-header">
+          <div>
+            <p className="auth-section-kicker">Order operations</p>
+            <h1>Track every wholesale order</h1>
+            <p>
+              Monitor confirmation, delivery dates, payment status, and retailer order history from
+              one clean workspace.
+            </p>
+          </div>
+        </div>
 
-        <div className="card order-list-shell">
-          {error ? <p className="alert error">{error}</p> : null}
+        {error ? <p className="alert error">{error}</p> : null}
+
+        <div className="orders-dashboard-metrics">
+          <div className="orders-metric-card">
+            <span>Total orders</span>
+            <strong>{metrics.total}</strong>
+          </div>
+          <div className="orders-metric-card">
+            <span>Active deliveries</span>
+            <strong>{metrics.active}</strong>
+          </div>
+          <div className="orders-metric-card">
+            <span>Delivered</span>
+            <strong>{metrics.delivered}</strong>
+          </div>
+        </div>
+
+        {activeOrder ? (
+          <section className="orders-highlight-card">
+            <div className="orders-highlight-copy">
+              <span className="orders-highlight-tag">Active delivery</span>
+              <h2>{`Order #${activeOrder._id.slice(-8).toUpperCase()}`}</h2>
+              <p>
+                {`Expected delivery ${formatDisplayDate(activeOrder.deliveryDate)}. Payment status: ${
+                  activeOrder.paymentStatus
+                }.`}
+              </p>
+            </div>
+            <StatusBadge status={getDisplayStatus(activeOrder)} />
+          </section>
+        ) : null}
+
+        <section className="orders-history-card">
+          <div className="orders-history-head">
+            <h2>Order history</h2>
+            <p>Revisit previous orders and manage live ones.</p>
+          </div>
 
           {loading ? (
             <p className="muted-text">Loading orders...</p>
           ) : orders.length === 0 ? (
-            <p className="muted-text">No orders yet. Browse products and place your first order.</p>
+            <p className="muted-text">No orders yet. Browse the catalog and place your first order.</p>
           ) : (
-            <div className="orders-grid enhanced-orders-grid">
+            <div className="orders-history-grid">
               {orders.map((order) => (
-                <article className="order-card produce-order-card" key={order._id}>
-                  <div className="order-card-top">
+                <article className="orders-history-item" key={order._id}>
+                  <div className="orders-history-top">
                     <div>
-                      <h3>{`Order #${order._id.slice(-8)}`}</h3>
-                      <p className="muted-text">{formatDisplayDate(order.createdAt)}</p>
+                      <h3>{`Order #${order._id.slice(-8).toUpperCase()}`}</h3>
+                      <p>{`Placed ${formatDisplayDate(order.createdAt)}`}</p>
                     </div>
                     <StatusBadge status={getDisplayStatus(order)} />
                   </div>
 
-                  <div className="produce-order-items">
+                  <div className="orders-history-lines">
                     {order.items?.map((item) => (
-                      <div className="produce-order-item" key={`${order._id}-${item.product?._id || item.name}`}>
-                        <span>{item.emoji}</span>
-                        <div>
-                          <strong>{item.name}</strong>
-                          <p className="muted-text">{`${item.quantity} × ₹${item.price} / ${item.unit}`}</p>
-                        </div>
+                      <div
+                        className="orders-history-line"
+                        key={`${order._id}-${item.product?._id || item.name}`}
+                      >
+                        <strong>{item.name}</strong>
+                        <span>{`${item.quantity} x Rs ${item.price} / ${item.unit}`}</span>
                       </div>
                     ))}
                   </div>
 
-                  <dl className="order-details">
+                  <dl className="orders-history-meta">
                     <div>
                       <dt>Delivery</dt>
                       <dd>{formatDisplayDate(order.deliveryDate)}</dd>
@@ -112,29 +162,33 @@ export default function MyOrdersPage() {
                       <dd>{order.paymentMethod}</dd>
                     </div>
                     <div>
-                      <dt>Payment Status</dt>
+                      <dt>Payment status</dt>
                       <dd>{order.paymentStatus}</dd>
                     </div>
                     <div>
                       <dt>Total</dt>
-                      <dd>₹{order.totalAmount?.toFixed?.(0) || order.totalAmount}</dd>
+                      <dd>{`Rs ${order.totalAmount?.toFixed?.(0) || order.totalAmount}`}</dd>
                     </div>
                   </dl>
 
                   {order.cancelReason ? (
-                    <p className="muted-text">{`Reason: ${order.cancelReason}`}</p>
+                    <p className="orders-history-note">{`Cancellation reason: ${order.cancelReason}`}</p>
                   ) : null}
 
                   {!order.cancelledAt && order.status !== 'Delivered' ? (
-                    <button className="button secondary small" type="button" onClick={() => handleCancel(order._id)}>
-                      Cancel Order
+                    <button
+                      className="button secondary small"
+                      type="button"
+                      onClick={() => handleCancel(order._id)}
+                    >
+                      Cancel order
                     </button>
                   ) : null}
                 </article>
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </Layout>
   );

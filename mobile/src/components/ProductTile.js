@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
 import { theme } from '../constants/theme';
 import QuantityStepper from './QuantityStepper';
 import { formatCurrency } from '../utils/format';
+import { getFallbackProductImageUri, getProductImageUri } from '../utils/productImages';
 
 const TAG_CONFIG = {
   bestseller: { label: 'Bestseller', backgroundColor: '#FFF3E0', color: '#C56711' },
@@ -37,6 +39,13 @@ export default function ProductTile({
 }) {
   const tag = product.tag ? TAG_CONFIG[product.tag] : null;
   const categoryMeta = getCategoryMeta(product.category);
+  const primaryImageUri = getProductImageUri(product);
+  const fallbackImageUri = getFallbackProductImageUri(product);
+  const [imageUri, setImageUri] = useState(primaryImageUri);
+
+  useEffect(() => {
+    setImageUri(primaryImageUri);
+  }, [primaryImageUri]);
 
   return (
     <View style={styles.card}>
@@ -66,21 +75,36 @@ export default function ProductTile({
         ) : null}
       </View>
 
-      <View
-        style={[
-          styles.iconCircle,
-          {
-            backgroundColor: `${product.color || theme.colors.primary}22`,
-            borderColor: `${product.color || theme.colors.primary}44`,
-          },
-        ]}
-      >
-        <Ionicons
-          name={categoryMeta.icon}
-          size={30}
-          color={product.color || categoryMeta.color}
+      {imageUri ? (
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.productImage}
+          onError={() => {
+            if (imageUri !== fallbackImageUri && fallbackImageUri) {
+              setImageUri(fallbackImageUri);
+              return;
+            }
+
+            setImageUri('');
+          }}
         />
-      </View>
+      ) : (
+        <View
+          style={[
+            styles.iconCircle,
+            {
+              backgroundColor: `${product.color || theme.colors.primary}22`,
+              borderColor: `${product.color || theme.colors.primary}44`,
+            },
+          ]}
+        >
+          <Ionicons
+            name={categoryMeta.icon}
+            size={30}
+            color={product.color || categoryMeta.color}
+          />
+        </View>
+      )}
 
       <Text style={styles.productName}>{product.name}</Text>
       <Text numberOfLines={2} style={styles.productDesc}>
@@ -171,6 +195,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'flex-start',
     borderWidth: 2,
+  },
+  productImage: {
+    width: '100%',
+    height: 148,
+    borderRadius: 18,
+    resizeMode: 'cover',
+    backgroundColor: '#F7F3EB',
   },
   productName: {
     fontSize: 16,

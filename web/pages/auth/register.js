@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import InputField from '../../components/InputField';
 import Layout from '../../components/Layout';
-import PageHeader from '../../components/PageHeader';
 import { apiClient } from '../../lib/api';
 import { applyStoredToken, useRedirectIfAuthenticated } from '../../lib/auth';
 import { getRequestErrorMessage } from '../../lib/errors';
@@ -77,57 +76,112 @@ export default function RegisterPage() {
   return (
     <Layout>
       <Head>
-        <title>Create Account | Produce Ordering App</title>
+        <title>Retailer Registration | AgriOrder B2B</title>
       </Head>
 
-      <div className="auth-card">
-        <PageHeader
-          title="Register"
-          description="Create a retailer account and start placing bulk produce orders."
-        />
-
-        {error ? (
-          <div className="alert error" role="alert" aria-live="polite">
-            <strong>Registration failed.</strong>
-            <span>{error}</span>
+      <div className="auth-boarding-shell">
+        <section className="auth-boarding-visual">
+          <div className="auth-visual-copy">
+            <span className="auth-visual-badge">Retailer Partnership Program</span>
+            <h1>Open your wholesale produce workspace.</h1>
+            <p>
+              Join AgriOrder B2B to source vegetables and fruits with transparent pricing,
+              dependable delivery windows, and quick repeat ordering.
+            </p>
           </div>
-        ) : null}
 
-        <form className="form-grid" onSubmit={handleSubmit}>
-          <InputField
-            label="Full Name"
-            name="name"
-            placeholder="Jane Doe"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-          <InputField
-            label="Email"
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <InputField
-            label="Password"
-            name="password"
-            type="password"
-            placeholder="At least 6 characters"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <button className="button primary" type="submit" disabled={submitting}>
-            {submitting ? 'Creating account...' : 'Register'}
-          </button>
-        </form>
+          <div className="auth-visual-metrics">
+            <div>
+              <strong>500+</strong>
+              <span>premium retailers onboarded</span>
+            </div>
+            <div>
+              <strong>24 hrs</strong>
+              <span>average dispatch turnaround</span>
+            </div>
+            <div>
+              <strong>Fresh</strong>
+              <span>cold-chain protected inventory</span>
+            </div>
+          </div>
+        </section>
 
-        <p className="helper-text">
-          Already registered? <Link href="/login">Sign in</Link>
-        </p>
+        <section className="auth-boarding-form">
+          <div className="auth-progress">
+            <span className="auth-progress-step is-active">1</span>
+            <span className="auth-progress-line" />
+            <span className="auth-progress-step">2</span>
+            <span className="auth-progress-line" />
+            <span className="auth-progress-step">3</span>
+          </div>
+
+          <div className="auth-boarding-card">
+            <div className="auth-boarding-header">
+              <p className="auth-section-kicker">Business Identity</p>
+              <h2>Create your retailer account</h2>
+              <p>
+                Start with the essentials. Once you are inside, you can continue to favorites,
+                cart, checkout, and order tracking right away.
+              </p>
+            </div>
+
+            {error ? (
+              <div className="alert error" role="alert" aria-live="polite">
+                {error}
+              </div>
+            ) : null}
+
+            <form className="form-grid auth-boarding-grid" onSubmit={handleSubmit}>
+              <InputField
+                label="Full name"
+                name="name"
+                placeholder="Jane Doe"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                label="Business email"
+                name="email"
+                type="email"
+                placeholder="name@business.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+              <InputField
+                label="Password"
+                name="password"
+                type="password"
+                placeholder="At least 6 characters"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+
+              <div className="auth-terms">
+                <input id="terms" type="checkbox" required />
+                <label htmlFor="terms">
+                  I agree to the wholesale trading terms and would like to activate my retailer
+                  account.
+                </label>
+              </div>
+
+              <div className="auth-actions-row">
+                <button className="button primary" type="submit" disabled={submitting}>
+                  {submitting ? 'Creating account...' : 'Continue application'}
+                </button>
+                <Link className="button secondary" href="/login">
+                  Already have an account?
+                </Link>
+              </div>
+            </form>
+
+            <p className="helper-text">
+              Already registered? <Link href="/login">Sign in here</Link>
+            </p>
+          </div>
+        </section>
       </div>
     </Layout>
   );

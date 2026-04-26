@@ -8,11 +8,23 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:apk": "npx eas build -p android --profile production-apk",
-    "build:preview-apk": "npx eas build -p android --profile preview",
-    "build:android": "npx eas build -p android --profile production",
-    "update:preview": "npx eas update --channel preview",
-    "update:production": "npx eas update --channel production"
+    "build:apk": "npm exec --yes --package eas-cli@18.8.1 eas -- build -p android --profile production-apk",
+    "build:preview-apk": "npm exec --yes --package eas-cli@18.8.1 eas -- build -p android --profile preview",
+    "build:android": "npm exec --yes --package eas-cli@18.8.1 eas -- build -p android --profile production",
+    "update:preview": "npm exec --yes --package eas-cli@18.8.1 eas -- update --channel preview",
+    "update:production": "npm exec --yes --package eas-cli@18.8.1 eas -- update --channel production"
+  },
+  "expo": {
+    "doctor": {
+      "appConfigFieldsNotSyncedCheck": {
+        "enabled": false
+      },
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-razorpay"
+        ]
+      }
+    }
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

@@ -64,6 +64,11 @@ export default function OrdersScreen() {
     [orders]
   );
 
+  const activeOrder = useMemo(
+    () => orders.find((order) => !order.cancelledAt && order.status !== 'Delivered') || null,
+    [orders]
+  );
+
   const handleCancel = async (orderId) => {
     try {
       await apiClient.post(`/orders/${orderId}/cancel`, {
@@ -88,9 +93,9 @@ export default function OrdersScreen() {
         ListHeaderComponent={
           <View style={styles.headerWrap}>
             <ScreenHeader
-              eyebrow="Orders"
-              title="Track every retailer order"
-              subtitle="See order status, payment details, and delivery dates in one place."
+              eyebrow="Order operations"
+              title="Track every wholesale order"
+              subtitle="See delivery status, payment details, and order history in one place."
             />
 
             <View style={styles.metricsRow}>
@@ -107,6 +112,21 @@ export default function OrdersScreen() {
                 <Text style={styles.metricValue}>{metrics.delivered}</Text>
               </SectionCard>
             </View>
+
+            {activeOrder ? (
+              <SectionCard style={styles.highlightCard}>
+                <View style={styles.highlightCopy}>
+                  <Text style={styles.highlightTag}>Active delivery</Text>
+                  <Text style={styles.highlightTitle}>{`Order #${activeOrder._id
+                    .slice(-8)
+                    .toUpperCase()}`}</Text>
+                  <Text style={styles.highlightSubtitle}>
+                    {`Expected ${formatDisplayDate(activeOrder.deliveryDate)} • Payment ${activeOrder.paymentStatus}`}
+                  </Text>
+                </View>
+                <StatusBadge status={getDisplayStatus(activeOrder)} />
+              </SectionCard>
+            ) : null}
 
             <InlineMessage message={error} tone="danger" />
           </View>
@@ -218,6 +238,35 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     gap: 6,
+  },
+  highlightCard: {
+    gap: 12,
+    backgroundColor: theme.colors.primaryDark,
+    borderColor: theme.colors.primaryDark,
+  },
+  highlightCopy: {
+    gap: 8,
+  },
+  highlightTag: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: theme.radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    color: theme.colors.white,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+  },
+  highlightTitle: {
+    color: theme.colors.white,
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  highlightSubtitle: {
+    color: 'rgba(255,255,255,0.82)',
+    lineHeight: 21,
   },
   metricLabel: {
     color: theme.colors.subtle,

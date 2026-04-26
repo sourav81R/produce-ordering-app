@@ -53,6 +53,7 @@ export default function CheckoutScreen() {
   const [paymentKey, setPaymentKey] = useState(process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const isRazorpayAvailable = Boolean(paymentKey && RazorpayCheckout);
 
   useEffect(() => {
     const loadPaymentConfig = async () => {
@@ -69,6 +70,17 @@ export default function CheckoutScreen() {
     loadPaymentConfig();
     fetchWallet();
   }, []);
+
+  useEffect(() => {
+    if (paymentMethod === 'razorpay' && !isRazorpayAvailable) {
+      setPaymentMethod('cod');
+      return;
+    }
+
+    if (paymentMethod === 'wallet' && wallet.balance < total) {
+      setPaymentMethod('cod');
+    }
+  }, [isRazorpayAvailable, paymentMethod, total, wallet.balance]);
 
   const payload = useMemo(
     () => ({
@@ -108,18 +120,24 @@ export default function CheckoutScreen() {
     setError('');
 
     try {
-      if (paymentMethod === 'wallet' || paymentMethod === 'cod') {
+      if (paymentMethod === 'wallet') {
+        if (wallet.balance < total) {
+          throw new Error('Wallet balance is too low for this order.');
+        }
+
         await apiClient.post('/orders', payload);
         await finalizeSuccess();
         return;
       }
 
-      if (!RazorpayCheckout) {
-        throw new Error('Razorpay native module is not installed in this mobile build yet.');
+      if (paymentMethod === 'cod') {
+        await apiClient.post('/orders', payload);
+        await finalizeSuccess();
+        return;
       }
 
-      if (!paymentKey) {
-        throw new Error('Razorpay key is missing from mobile environment configuration.');
+      if (!isRazorpayAvailable) {
+        throw new Error('Online payment is not configured in this mobile build yet.');
       }
 
       const response = await apiClient.post('/orders', payload);
@@ -235,8 +253,16 @@ export default function CheckoutScreen() {
 
         <View style={styles.paymentList}>
           {paymentMethods.map((method) => {
-            const disabled = method.key === 'wallet' && wallet.balance < total;
+            const disabled =
+              (method.key === 'wallet' && wallet.balance < total) ||
+              (method.key === 'razorpay' && !isRazorpayAvailable);
             const active = paymentMethod === method.key;
+            const subtitle =
+              method.key === 'wallet' && wallet.balance < total
+                ? `Need ${formatCurrency(total)} in wallet to use store credit.`
+                : method.key === 'razorpay' && !isRazorpayAvailable
+                  ? 'Online payment is unavailable in this build right now.'
+                  : method.subtitle;
 
             return (
               <Pressable
@@ -258,7 +284,7 @@ export default function CheckoutScreen() {
                 </View>
                 <View style={styles.paymentCopy}>
                   <Text style={styles.paymentTitle}>{method.title}</Text>
-                  <Text style={styles.paymentSubtitle}>{method.subtitle}</Text>
+                  <Text style={styles.paymentSubtitle}>{subtitle}</Text>
                 </View>
                 {active ? (
                   <Ionicons name="checkmark-circle" size={20} color={theme.colors.primary} />
@@ -267,6 +293,12 @@ export default function CheckoutScreen() {
             );
           })}
         </View>
+        {!isRazorpayAvailable ? (
+          <InlineMessage
+            message="Razorpay is hidden behind build-time native setup, so this APK will place orders with cash on delivery or wallet until the payment build is configured."
+            tone="warning"
+          />
+        ) : null}
       </SectionCard>
 
       <SectionCard style={styles.card}>

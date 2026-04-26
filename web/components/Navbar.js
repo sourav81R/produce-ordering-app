@@ -2,13 +2,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { clearStoredToken, getStoredToken } from '../lib/auth';
 import { setApiToken } from '../lib/api';
+import { clearStoredToken, getStoredToken } from '../lib/auth';
 
-const publicLinks = [{ href: '/products', label: 'Browse' }];
+const publicLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/products', label: 'Products' },
+];
+
 const authLinks = [
-  { href: '/favorites', label: 'Favorites' },
-  { href: '/orders', label: 'My Orders' },
+  { href: '/favorites', label: 'Saved' },
+  { href: '/orders', label: 'Orders' },
 ];
 
 export default function Navbar() {
@@ -27,18 +31,25 @@ export default function Navbar() {
   const handleLogout = async () => {
     clearStoredToken();
     setApiToken(null);
-
     router.push('/login');
   };
 
   return (
-    <header className="site-header">
-      <div className="site-header-inner">
-        <Link className="brand" href="/products">
+    <header className="site-header blink-shell-header">
+      <div className="blink-top-strip">
+        <span>Fresh produce marketplace</span>
+        <p>Real product photos, faster browsing, and cleaner quick-commerce styling.</p>
+      </div>
+
+      <div className="site-header-inner blink-header-inner">
+        <Link className="brand blink-brand" href="/">
           <span className="brand-mark" aria-hidden="true">
-            🌿
+            AG
           </span>
-          <span>GoVigi</span>
+          <span className="brand-copy">
+            <strong>AgriOrder Fresh</strong>
+            <small>fruits, vegetables, and essentials</small>
+          </span>
         </Link>
 
         <div className="site-header-actions">
@@ -54,7 +65,7 @@ export default function Navbar() {
             <span />
           </button>
 
-          <nav className={`site-nav ${menuOpen ? 'is-open' : ''}`}>
+          <nav className={`site-nav blink-nav ${menuOpen ? 'is-open' : ''}`}>
             {publicLinks.map((link) => (
               <Link
                 key={link.href}
@@ -79,21 +90,37 @@ export default function Navbar() {
                     ) : null}
                   </Link>
                 ))}
-                <button className="nav-cart-button" type="button" onClick={() => setDrawer(true)}>
-                  <span>🛒 Cart</span>
+
+                <Link
+                  className={`nav-link ${router.pathname === '/cart' ? 'active' : ''}`}
+                  href="/cart"
+                >
+                  Cart
+                </Link>
+
+                <button className="nav-cart-button blink-cart-button" type="button" onClick={() => setDrawer(true)}>
+                  <span>Basket</span>
                   {count > 0 ? <span className="nav-cart-count">{count}</span> : null}
                 </button>
-                <button className="button secondary small nav-logout" type="button" onClick={handleLogout}>
+
+                <button
+                  className="button secondary small nav-logout blink-logout"
+                  type="button"
+                  onClick={handleLogout}
+                >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link className={`nav-link ${router.pathname === '/login' ? 'active' : ''}`} href="/login">
-                  Login
+                <Link
+                  className={`nav-link ${router.pathname === '/login' ? 'active' : ''}`}
+                  href="/login"
+                >
+                  Sign in
                 </Link>
-                <Link className="button secondary small nav-logout" href="/register">
-                  Register
+                <Link className="button secondary small blink-signup" href="/register">
+                  Create account
                 </Link>
               </>
             )}

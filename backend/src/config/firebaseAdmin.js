@@ -57,6 +57,7 @@ const initializeFirebaseAdmin = () => {
   }
 
   if (getApps().length) {
+    console.warn('Firebase Admin is already initialized.');
     return getApps()[0];
   }
 
@@ -84,7 +85,7 @@ const getFirebasePublicKeys = async (forceRefresh = false) => {
   let response;
   try {
     response = await fetch(firebasePublicKeysUrl);
-  } catch (_error) {
+  } catch {
     throw buildFirebaseKeyFetchError();
   }
 
@@ -126,6 +127,11 @@ const verifyFirebaseIdTokenWithPublicKeys = async (idToken) => {
   if (!signingCert) {
     certs = await getFirebasePublicKeys(true);
     signingCert = certs[decoded.header.kid];
+    console.warn(
+      `Firebase public keys rotated. Refreshed keys and ${
+        signingCert ? 'found' : 'did not find'
+      } matching key for token.`
+    );
   }
 
   if (!signingCert) {

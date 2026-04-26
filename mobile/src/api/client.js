@@ -39,6 +39,8 @@ const resolveFallbackBaseUrl = () => {
   return productionFallbackBaseUrl;
 };
 
+export const getAssetBaseUrl = () => resolveFallbackBaseUrl().replace(/\/api\/?$/, '');
+
 export const apiClient = axios.create({
   baseURL: resolveFallbackBaseUrl(),
   timeout: 10000,

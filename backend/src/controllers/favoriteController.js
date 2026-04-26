@@ -1,15 +1,28 @@
 import { Favorite } from '../models/Favorite.js';
 import { Product } from '../models/Product.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { resolveProductImageUrl } from '../utils/productImages.js';
+
+const productSummaryFields =
+  'name price unit emoji color category tag description isAvailable imageUrl imageAlt supplier origin packSize stockLevel minOrderQty deliveryWindow qualityGrade isOrganic';
 
 export const getFavorites = asyncHandler(async (req, res) => {
   const favorites = await Favorite.find({ user: req.user._id })
-    .populate('product', 'name price unit emoji color category tag description isAvailable')
+    .populate('product', productSummaryFields)
     .lean();
 
   return res.status(200).json({
     success: true,
-    favorites: favorites.map((favorite) => favorite.product).filter(Boolean),
+    favorites: favorites
+      .map((favorite) =>
+        favorite.product
+          ? {
+              ...favorite.product,
+              imageUrl: resolveProductImageUrl(req, favorite.product),
+            }
+          : favorite.product
+      )
+      .filter(Boolean),
   });
 });
 

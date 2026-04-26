@@ -1,13 +1,28 @@
 import { CartItem } from '../models/CartItem.js';
 import { Product } from '../models/Product.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { resolveProductImageUrl } from '../utils/productImages.js';
+
+const productSummaryFields =
+  'name price unit emoji color category tag description isAvailable imageUrl imageAlt supplier origin packSize stockLevel minOrderQty deliveryWindow qualityGrade isOrganic';
 
 export const getCart = asyncHandler(async (req, res) => {
   const items = await CartItem.find({ user: req.user._id })
-    .populate('product', 'name price unit emoji color category tag description isAvailable')
+    .populate('product', productSummaryFields)
     .lean();
 
-  return res.status(200).json({ success: true, items });
+  return res.status(200).json({
+    success: true,
+    items: items.map((item) => ({
+      ...item,
+      product: item.product
+        ? {
+            ...item.product,
+            imageUrl: resolveProductImageUrl(req, item.product),
+          }
+        : item.product,
+    })),
+  });
 });
 
 export const addToCart = asyncHandler(async (req, res) => {
@@ -32,9 +47,22 @@ export const addToCart = asyncHandler(async (req, res) => {
     { user: req.user._id, product: productId },
     { $inc: { quantity: parsedQuantity } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
-  ).populate('product', 'name price unit emoji color category tag description isAvailable');
+  )
+    .populate('product', productSummaryFields)
+    .lean();
 
-  return res.status(200).json({ success: true, item });
+  return res.status(200).json({
+    success: true,
+    item: {
+      ...item,
+      product: item.product
+        ? {
+            ...item.product,
+            imageUrl: resolveProductImageUrl(req, item.product),
+          }
+        : item.product,
+    },
+  });
 });
 
 export const updateCartItem = asyncHandler(async (req, res) => {
@@ -55,13 +83,26 @@ export const updateCartItem = asyncHandler(async (req, res) => {
     { user: req.user._id, product: req.params.productId },
     { quantity: parsedQuantity },
     { new: true }
-  ).populate('product', 'name price unit emoji color category tag description isAvailable');
+  )
+    .populate('product', productSummaryFields)
+    .lean();
 
   if (!item) {
     return res.status(404).json({ message: 'Cart item not found.' });
   }
 
-  return res.status(200).json({ success: true, item });
+  return res.status(200).json({
+    success: true,
+    item: {
+      ...item,
+      product: item.product
+        ? {
+            ...item.product,
+            imageUrl: resolveProductImageUrl(req, item.product),
+          }
+        : item.product,
+    },
+  });
 });
 
 export const removeFromCart = asyncHandler(async (req, res) => {

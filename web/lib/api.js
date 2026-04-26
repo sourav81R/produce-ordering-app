@@ -4,6 +4,28 @@ const TOKEN_KEY = 'produce-ordering-token';
 const localFallbackBaseUrl = 'http://localhost:5000/api';
 const productionFallbackBaseUrl = 'https://produce-ordering-app.onrender.com/api';
 
+const normalizeApiBaseUrl = (url) => {
+  if (!url) {
+    return url;
+  }
+
+  const trimmedUrl = url.replace(/\/+$/, '');
+
+  if (trimmedUrl.endsWith('/api')) {
+    return trimmedUrl;
+  }
+
+  return `${trimmedUrl}/api`;
+};
+
+const isLocalApiBaseUrl = (url) => {
+  if (!url) {
+    return false;
+  }
+
+  return /\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(url);
+};
+
 const resolveBrowserFallbackBaseUrl = () => {
   if (typeof window === 'undefined') {
     return localFallbackBaseUrl;
@@ -18,13 +40,39 @@ const resolveBrowserFallbackBaseUrl = () => {
   return productionFallbackBaseUrl;
 };
 
-export const getBrowserApiBaseUrl = () =>
-  process.env.NEXT_PUBLIC_API_BASE_URL || resolveBrowserFallbackBaseUrl();
+export const getBrowserApiBaseUrl = () => {
+  const explicitUrl = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
 
-export const getServerApiBaseUrl = () =>
-  process.env.API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  (process.env.NODE_ENV === 'production' ? productionFallbackBaseUrl : localFallbackBaseUrl);
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalBrowser = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    if (isLocalBrowser) {
+      return isLocalApiBaseUrl(explicitUrl) ? explicitUrl : localFallbackBaseUrl;
+    }
+  }
+
+  return explicitUrl || resolveBrowserFallbackBaseUrl();
+};
+
+export const getServerApiBaseUrl = () => {
+  const serverUrl = normalizeApiBaseUrl(process.env.API_BASE_URL);
+  const browserUrl = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
+
+  if (process.env.NODE_ENV !== 'production') {
+    if (isLocalApiBaseUrl(serverUrl)) {
+      return serverUrl;
+    }
+
+    if (isLocalApiBaseUrl(browserUrl)) {
+      return browserUrl;
+    }
+
+    return localFallbackBaseUrl;
+  }
+
+  return serverUrl || browserUrl || productionFallbackBaseUrl;
+};
 
 export const apiClient = axios.create({
   baseURL: getBrowserApiBaseUrl(),

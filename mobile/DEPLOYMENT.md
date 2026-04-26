@@ -8,17 +8,21 @@ This Expo app is configured for:
 
 ## 1. One-time setup
 
-Install EAS CLI:
+Install EAS CLI globally if you use it often:
 
 ```bash
 npm install -g eas-cli
 ```
+
+You can also skip the global install and use the project scripts, which run EAS through `npm exec`.
 
 Log in to Expo:
 
 ```bash
 eas login
 ```
+
+For CI or any non-interactive machine, set `EXPO_TOKEN` instead of logging in manually.
 
 Initialize the Expo project on EAS if you have not done it already:
 
@@ -100,6 +104,12 @@ npm run build:preview-apk
 For Play Store submission:
 
 ```bash
+npx eas build -p android --profile production
+```
+
+Or:
+
+```bash
 npm run build:android
 ```
 
@@ -147,4 +157,10 @@ Create a release-style export:
 
 ```bash
 npx expo export --platform web
+```
+
+Verify the scripted EAS command path without installing `eas-cli` locally:
+
+```bash
+npm exec --yes --package eas-cli@18.8.1 eas -- --version
 ```

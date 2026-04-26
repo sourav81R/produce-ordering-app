@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import Layout from '../components/Layout';
-import PageHeader from '../components/PageHeader';
 import PaymentModal from '../components/PaymentModal';
 import { useCart } from '../context/CartContext';
 import { apiClient } from '../lib/api';
@@ -23,6 +22,27 @@ const maxDeliveryString = () => {
   return max.toISOString().slice(0, 10);
 };
 
+const paymentOptions = [
+  {
+    key: 'cod',
+    title: 'Cash on delivery',
+    fee: 'No upfront fee',
+    description: 'Pay once the produce reaches your store location.',
+  },
+  {
+    key: 'razorpay',
+    title: 'Razorpay',
+    fee: 'Online payment',
+    description: 'Use secure online checkout for faster confirmation.',
+  },
+  {
+    key: 'wallet',
+    title: 'Wallet',
+    fee: 'Store credit',
+    description: 'Use your available balance before any other method.',
+  },
+];
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { checkingAuth } = useRequireAuth();
@@ -33,6 +53,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [error, setError] = useState('');
+  const storedUser = getStoredUser();
 
   useEffect(() => {
     const loadPaymentConfig = async () => {
@@ -52,6 +73,16 @@ export default function CheckoutPage() {
       fetchWallet();
     }
   }, [checkingAuth]);
+
+  useEffect(() => {
+    if (paymentMethod === 'wallet' && wallet.balance < total) {
+      setPaymentMethod('cod');
+    }
+
+    if (paymentMethod === 'razorpay' && !paymentConfig.enabled) {
+      setPaymentMethod('cod');
+    }
+  }, [paymentConfig.enabled, paymentMethod, total, wallet.balance]);
 
   const orderPayload = useMemo(
     () => ({
@@ -100,7 +131,7 @@ export default function CheckoutPage() {
       await openRazorpayCheckout({
         keyId: paymentConfig.keyId,
         order: response.data,
-        user: getStoredUser(),
+        user: storedUser,
         onSuccess: async (verificationPayload) => {
           await apiClient.post('/orders/verify-payment', verificationPayload);
           await clearCart();
@@ -110,7 +141,7 @@ export default function CheckoutPage() {
         },
         onDismiss: () => {
           setProcessingPayment(false);
-          setError('Payment cancelled. Your cart is still available, and the order remains pending.');
+          setError('Payment cancelled. Your cart remains available and the order is still pending.');
         },
       });
     } catch (requestError) {
@@ -128,112 +159,178 @@ export default function CheckoutPage() {
   return (
     <Layout>
       <Head>
-        <title>Checkout | GoVigi Produce Ordering App</title>
+        <title>Checkout | AgriOrder B2B</title>
       </Head>
 
       <PaymentModal
         open={processingPayment}
-        title="Opening Razorpay"
-        message="Please complete your payment in the Razorpay checkout window."
+        title="Opening secure checkout"
+        message="Complete the payment in the Razorpay window to confirm this order."
       />
 
-      <div className="page-stack">
-        <PageHeader
-          title="Checkout"
-          description="Confirm your items, choose a delivery date, and complete payment."
-        />
+      <div className="transaction-shell">
+        <div className="transaction-header">
+          <div>
+            <p className="auth-section-kicker">Secure encrypted checkout</p>
+            <h1>Confirm delivery and payment</h1>
+            <p>
+              Review your produce line items, set a delivery date, and confirm the payment method
+              that best fits this order.
+            </p>
+          </div>
+
+          <button className="button secondary small" type="button" onClick={() => router.push('/products')}>
+            Back to catalog
+          </button>
+        </div>
 
         {error ? <p className="alert error">{error}</p> : null}
 
         {!items.length ? (
           <div className="card empty-state">
-            <div style={{ fontSize: 54 }}>🛒</div>
-            <h3>Your cart is empty</h3>
-            <p className="muted-text">Add produce to your cart before checking out.</p>
+            <div style={{ fontSize: 54 }}>Cart</div>
+            <h3>Your order draft is empty</h3>
+            <p className="muted-text">Add products from the catalog before moving through checkout.</p>
           </div>
         ) : (
-          <div className="checkout-layout">
-            <section className="card checkout-main">
-              <h2>Order Summary</h2>
-              <div className="checkout-summary-list">
-                {items.map((item) => (
-                  <article className="checkout-summary-item" key={item.product?._id}>
-                    <div className="checkout-summary-copy">
-                      <strong>{item.product?.name}</strong>
-                      <span>
-                        {item.quantity} × ₹{item.product?.price} / {item.product?.unit}
-                      </span>
-                    </div>
-                    <strong>₹{((item.product?.price || 0) * item.quantity).toFixed(0)}</strong>
-                  </article>
-                ))}
-              </div>
-
-              <div className="field">
-                <span className="field-label">Delivery Date</span>
-                <input
-                  className="field-input"
-                  type="date"
-                  min={new Date().toISOString().slice(0, 10)}
-                  max={maxDeliveryString()}
-                  value={deliveryDate}
-                  onChange={(event) => setDeliveryDate(event.target.value)}
-                />
-                <span className="muted-text">{`Selected: ${formatDisplayDate(deliveryDate)}`}</span>
-              </div>
-
-              <div className="checkout-payment-grid">
-                <button
-                  type="button"
-                  className={`payment-option ${paymentMethod === 'cod' ? 'is-active' : ''}`}
-                  onClick={() => setPaymentMethod('cod')}
-                >
-                  <strong>💵 Cash on Delivery</strong>
-                  <span>Pay when the produce arrives.</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`payment-option ${paymentMethod === 'razorpay' ? 'is-active' : ''}`}
-                  onClick={() => setPaymentMethod('razorpay')}
-                  disabled={!paymentConfig.enabled}
-                >
-                  <strong>💳 Razorpay</strong>
-                  <span>{paymentConfig.enabled ? 'Pay online securely.' : 'Razorpay not configured.'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  className={`payment-option ${paymentMethod === 'wallet' ? 'is-active' : ''}`}
-                  onClick={() => setPaymentMethod('wallet')}
-                  disabled={wallet.balance < total}
-                >
-                  <strong>👛 Wallet</strong>
-                  <span>{`Balance: ₹${wallet.balance.toFixed(0)}`}</span>
-                </button>
-              </div>
-            </section>
-
-            <aside className="summary-card checkout-side">
-              <h2>Price Breakdown</h2>
-              <div className="summary-breakdown">
-                <div>
-                  <span>Subtotal</span>
-                  <strong>₹{subtotal.toFixed(0)}</strong>
+          <div className="transaction-grid">
+            <div className="transaction-main">
+              <section className="transaction-card">
+                <div className="transaction-card-head">
+                  <span className="transaction-step">1</span>
+                  <div>
+                    <h2>Shipping address</h2>
+                    <p>Retail account details used for this order.</p>
+                  </div>
                 </div>
-                <div>
-                  <span>Delivery</span>
-                  <strong>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee.toFixed(0)}`}</strong>
-                </div>
-                <div className="summary-total">
-                  <span>Total</span>
-                  <strong>₹{total.toFixed(0)}</strong>
-                </div>
-              </div>
 
-              <button className="button primary full-width" type="button" onClick={handlePlaceOrder} disabled={submitting}>
-                {submitting ? 'Processing...' : 'Place Order'}
-              </button>
+                <div className="transaction-address-grid">
+                  <div>
+                    <span>Business contact</span>
+                    <strong>{storedUser?.name || 'Retail buyer'}</strong>
+                  </div>
+                  <div>
+                    <span>Business email</span>
+                    <strong>{storedUser?.email || 'No email available'}</strong>
+                  </div>
+                  <div className="transaction-address-wide">
+                    <span>Delivery note</span>
+                    <strong>Final dispatch details are confirmed when the order is processed.</strong>
+                  </div>
+                </div>
+              </section>
+
+              <section className="transaction-card">
+                <div className="transaction-card-head">
+                  <span className="transaction-step">2</span>
+                  <div>
+                    <h2>Delivery scheduling</h2>
+                    <p>Choose the preferred dispatch date for this order.</p>
+                  </div>
+                </div>
+
+                <div className="transaction-date-panel">
+                  <label className="field" htmlFor="deliveryDate">
+                    <span className="field-label">Delivery date</span>
+                    <input
+                      id="deliveryDate"
+                      className="field-input"
+                      type="date"
+                      min={new Date().toISOString().slice(0, 10)}
+                      max={maxDeliveryString()}
+                      value={deliveryDate}
+                      onChange={(event) => setDeliveryDate(event.target.value)}
+                    />
+                  </label>
+
+                  <div className="transaction-date-note">
+                    <strong>Selected window</strong>
+                    <span>{formatDisplayDate(deliveryDate)}</span>
+                    <p>Cold-chain handling and fulfillment timing are coordinated after confirmation.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="transaction-card">
+                <div className="transaction-card-head">
+                  <span className="transaction-step">3</span>
+                  <div>
+                    <h2>Payment method</h2>
+                    <p>Select how you want to settle this purchase order.</p>
+                  </div>
+                </div>
+
+                <div className="transaction-payment-grid">
+                  {paymentOptions.map((option) => {
+                    const disabled =
+                      (option.key === 'wallet' && wallet.balance < total) ||
+                      (option.key === 'razorpay' && !paymentConfig.enabled);
+
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        className={`transaction-payment-card ${
+                          paymentMethod === option.key ? 'is-active' : ''
+                        }`}
+                        disabled={disabled}
+                        onClick={() => setPaymentMethod(option.key)}
+                      >
+                        <span className="transaction-payment-title">{option.title}</span>
+                        <span className="transaction-payment-fee">
+                          {option.key === 'wallet' ? `Balance Rs ${wallet.balance.toFixed(0)}` : option.fee}
+                        </span>
+                        <p>{option.description}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+
+            <aside className="transaction-summary">
+              <div className="transaction-summary-card">
+                <div className="transaction-summary-head">
+                  <h2>Order summary</h2>
+                  <p>{`${items.length} line item${items.length === 1 ? '' : 's'}`}</p>
+                </div>
+
+                <div className="transaction-summary-items">
+                  {items.map((item) => (
+                    <article className="transaction-summary-item" key={item.product?._id}>
+                      <div>
+                        <strong>{item.product?.name}</strong>
+                        <span>{`${item.quantity} x Rs ${item.product?.price} / ${item.product?.unit}`}</span>
+                      </div>
+                      <b>{`Rs ${((item.product?.price || 0) * item.quantity).toFixed(0)}`}</b>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="transaction-summary-breakdown">
+                  <div>
+                    <span>Subtotal</span>
+                    <strong>{`Rs ${subtotal.toFixed(0)}`}</strong>
+                  </div>
+                  <div>
+                    <span>Logistics</span>
+                    <strong>{deliveryFee === 0 ? 'Free' : `Rs ${deliveryFee.toFixed(0)}`}</strong>
+                  </div>
+                  <div className="transaction-summary-total">
+                    <span>Total amount</span>
+                    <strong>{`Rs ${total.toFixed(0)}`}</strong>
+                  </div>
+                </div>
+
+                <button
+                  className="button primary full-width"
+                  type="button"
+                  onClick={handlePlaceOrder}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Processing...' : 'Confirm and pay'}
+                </button>
+              </div>
             </aside>
           </div>
         )}
