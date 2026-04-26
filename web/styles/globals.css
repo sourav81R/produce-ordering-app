@@ -4057,6 +4057,7 @@ body::before {
   display: grid;
   gap: 14px;
   padding: 14px;
+  min-width: 0;
   border-radius: 22px;
   border: 1px solid var(--blink-border);
   background: #fff;
@@ -4140,6 +4141,7 @@ body::before {
 .blink-product-copy {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .blink-delivery-pill {
@@ -4173,17 +4175,22 @@ body::before {
   margin: 0;
   color: var(--blink-subtext);
   font-size: 0.84rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .blink-product-pricing {
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
 .blink-product-pricing div {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
 }
 
 .blink-product-pricing strong {
@@ -4202,6 +4209,7 @@ body::before {
 
 .blink-product-footer {
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
@@ -4209,6 +4217,7 @@ body::before {
   color: var(--blink-green-dark);
   font-size: 0.82rem;
   font-weight: 800;
+  min-width: 0;
 }
 
 .blink-add-button {
@@ -4267,6 +4276,7 @@ body::before {
 
 .blink-cart-card {
   grid-template-columns: 120px 1fr;
+  min-width: 0;
 }
 
 .blink-cart-image,
@@ -4296,6 +4306,7 @@ body::before {
 
 .blink-summary-card {
   top: 116px;
+  min-width: 0;
 }
 
 .blink-cart-page-head {
@@ -4321,6 +4332,19 @@ body::before {
   .blink-cart-layout {
     grid-template-columns: 1fr;
   }
+
+  .blink-filter-shell,
+  .blink-cart-page-head {
+    align-items: stretch;
+  }
+
+  .blink-sort-shell {
+    min-width: min(100%, 240px);
+  }
+
+  .blink-stat-strip {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 768px) {
@@ -4332,6 +4356,17 @@ body::before {
   .blink-header-inner,
   .main-content {
     width: min(100%, calc(100% - 18px));
+  }
+
+  .site-header-inner,
+  .site-header-actions {
+    gap: 12px;
+  }
+
+  .site-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .blink-nav {
@@ -4348,12 +4383,225 @@ body::before {
     padding: 22px;
   }
 
+  .blink-home-copy h1,
+  .blink-catalog-copy h1 {
+    font-size: clamp(1.9rem, 9vw, 3rem);
+  }
+
+  .blink-home-metrics,
+  .blink-stat-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .blink-home-metrics div,
+  .blink-stat-strip div {
+    min-width: 0;
+  }
+
+  .blink-home-panel-grid,
+  .blink-filter-shell,
+  .blink-section-head,
+  .blink-cart-page-head,
+  .procurement-head-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .blink-filter-shell,
+  .blink-cart-page-head {
+    padding: 14px;
+  }
+
+  .blink-sort-shell {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .blink-card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
   .blink-product-card {
+    padding: 12px;
     border-radius: 18px;
+  }
+
+  .blink-product-media {
+    min-height: 156px;
+    padding: 16px 14px 14px;
+  }
+
+  .blink-product-image {
+    height: clamp(128px, 38vw, 170px);
+  }
+
+  .blink-card-badge,
+  .blink-wishlist-btn {
+    top: 8px;
+  }
+
+  .blink-card-badge {
+    left: 8px;
+  }
+
+  .blink-wishlist-btn {
+    right: 8px;
+  }
+
+  .blink-product-copy h3 {
+    font-size: 1rem;
+  }
+
+  .blink-product-pricing {
+    justify-content: flex-start;
+  }
+
+  .blink-product-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
   }
 
   .blink-cart-card,
   .blink-drawer-item {
     grid-template-columns: 1fr;
+  }
+
+  .blink-cart-card,
+  .procurement-cart-card,
+  .procurement-summary-card {
+    padding: 18px;
+  }
+
+  .blink-cart-image {
+    height: clamp(180px, 44vw, 240px);
+  }
+
+  .blink-drawer-image {
+    width: min(100%, 132px);
+    height: 112px;
+  }
+
+  .cart-drawer-item,
+  .blink-drawer-item {
+    justify-items: start;
+  }
+
+  .cart-drawer-qty,
+  .procurement-cart-actions,
+  .checkout-actions {
+    flex-wrap: wrap;
+  }
+
+  .procurement-cart-actions .blink-qty-stepper,
+  .checkout-actions .button,
+  .procurement-head-actions .button {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .blink-header-inner,
+  .main-content {
+    width: min(100%, calc(100% - 12px));
+  }
+
+  .main-content {
+    padding: 18px 0 52px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-copy small {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  .blink-home-copy,
+  .blink-catalog-copy,
+  .blink-home-panel,
+  .blink-catalog-search-panel,
+  .blink-cart-card,
+  .blink-summary-card,
+  .blink-cart-page-head,
+  .procurement-cart-card,
+  .procurement-summary-card {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .blink-home-metrics,
+  .blink-stat-strip,
+  .blink-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blink-category-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .blink-category-pill {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .blink-product-media {
+    min-height: 142px;
+    padding: 44px 12px 12px;
+  }
+
+  .blink-product-image {
+    height: clamp(120px, 44vw, 150px);
+  }
+
+  .blink-product-pricing small {
+    font-size: 0.82rem;
+  }
+
+  .blink-product-footer {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .blink-add-button,
+  .blink-qty-stepper {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .blink-qty-stepper {
+    display: grid;
+    grid-template-columns: 40px 1fr 40px;
+  }
+
+  .blink-qty-stepper button,
+  .blink-qty-stepper span {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .blink-direct-link {
+    font-size: 0.82rem;
+  }
+
+  .blink-cart-image,
+  .blink-drawer-image {
+    width: 100%;
+    max-width: none;
+  }
+
+  .blink-drawer {
+    padding: 18px;
+  }
+
+  .cart-drawer-qty {
+    gap: 8px;
   }
 }
