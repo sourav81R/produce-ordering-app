@@ -29,24 +29,24 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    gap: theme.spacing.xs,
+    gap: 8,
   },
   eyebrow: {
     color: theme.colors.primary,
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   title: {
     color: theme.colors.text,
-    fontSize: theme.typography.title,
+    fontSize: 26,
     fontWeight: '800',
-    lineHeight: 30,
+    lineHeight: 32,
   },
   subtitle: {
     color: theme.colors.muted,
-    fontSize: theme.typography.body,
-    lineHeight: 22,
+    fontSize: 14,
+    lineHeight: 21,
   },
 });

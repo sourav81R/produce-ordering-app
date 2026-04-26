@@ -29,15 +29,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.sm,
-    padding: theme.spacing.xs,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surfaceSoft,
+    gap: 8,
+    padding: 5,
+    borderRadius: 16,
+    backgroundColor: '#F5F8F6',
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
   compactContainer: {
-    gap: theme.spacing.xs,
+    gap: 6,
   },
   button: {
     width: 36,
@@ -50,15 +50,16 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   compactButton: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
   },
   buttonPrimary: {
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
   value: {
-    minWidth: 24,
+    minWidth: 28,
     textAlign: 'center',
     fontSize: 16,
     fontWeight: '800',
