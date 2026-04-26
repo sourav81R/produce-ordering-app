@@ -54,6 +54,10 @@ ANDROID_VERSION_CODE=1
 IOS_BUILD_NUMBER=1
 ```
 
+Only put the Razorpay public key ID in `mobile/.env`. The secret key belongs in
+`backend/.env` as `RAZORPAY_KEY_SECRET`, because Expo bundles `EXPO_PUBLIC_*`
+values into the native app.
+
 ### Google Sign-In setup for Android APKs
 
 If the app shows "Google sign-in is not configured", the APK was built without a
